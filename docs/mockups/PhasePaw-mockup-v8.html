@@ -100,6 +100,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 #hdr .by{padding-left:10px;border-left:1px solid var(--line);margin-left:2px}
 .btn.primary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:16px;letter-spacing:.1em;border-radius:14px;background:linear-gradient(180deg,#ecd2ff 0%,#c58bff 45%,#9a4ff0 100%)}
 .btn.primary span{line-height:1}
+.btn.primary svg{width:20px;height:20px}
 #pFix .row{height:26px}
 #pFix .row+.row{height:48px;align-items:flex-start}
 #pFix .val{background:var(--disp);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:1px 9px;font-size:15px;color:var(--seltx);box-shadow:inset 0 1px 4px rgba(0,0,0,.8);min-width:86px;text-align:center}
@@ -175,7 +176,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
     <div class="ph"><h2>Fixer (acts on the bass)</h2><span class="hint" id="srcHint" data-tip="The same fix done before the plugin, so you can switch the fixer off and add no latency. In a synth: move the oscillator start phase by this many degrees (retrigger must be on). With an audio clip: nudge it by this many ms. It matches the fixer at the bass note itself; bands you turned by hand are not included." style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--seltx);margin-left:8px"></span>
       <button class="btn" id="fxReset" data-tip="Put the fixer back to its start values. Key: R." style="height:24px;padding:0 10px">Reset</button></div>
     <div style="display:flex;gap:20px;padding:4px 14px 0;align-items:flex-start">
-      <button class="btn primary" id="fxAuto" data-tip="Finds the best fix in one click: tries every time shift and phase rotation together, then flips the polarity instead when that needs less rotation. It clears any bands you turned by hand. Key: A." style="height:66px;width:150px;flex:none"><svg viewBox="0 0 24 24" width="24" height="24" fill="#1d0a2b" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.6" ry="4.6"/><circle cx="5.3" cy="10.6" r="2.3"/><circle cx="9.4" cy="6.4" r="2.5"/><circle cx="14.6" cy="6.4" r="2.5"/><circle cx="18.7" cy="10.6" r="2.3"/></svg><span>AUTO ALIGN</span></button>
+      <div style="display:flex;flex-direction:column;gap:5px;width:150px;flex:none"><button class="btn primary" id="fxAuto" data-tip="Finds the best fix in one click: tries every time shift and phase rotation together, then flips the polarity instead when that needs less rotation. It clears any bands you turned by hand. Light Also per band below to let it turn the bands too. Key: A." style="height:44px;width:150px;flex:none;flex-direction:row;gap:8px"><svg viewBox="0 0 24 24" width="24" height="24" fill="#1d0a2b" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.6" ry="4.6"/><circle cx="5.3" cy="10.6" r="2.3"/><circle cx="9.4" cy="6.4" r="2.5"/><circle cx="14.6" cy="6.4" r="2.5"/><circle cx="18.7" cy="10.6" r="2.3"/></svg><span>AUTO ALIGN</span></button><button class="chip mon" id="fxDeep" data-tip="When lit, Auto Align also turns each frequency band to its own best phase after the overall fix. This fixes more when the bassline has several notes or the kick sweeps in pitch. The price in the real plugin: this kind of processing adds latency and can change the punch of the bass a little, so it is off by default." style="height:20px;font-size:13px;justify-content:center"><i class="led"></i>Also per band</button></div>
       <div style="display:flex;flex-direction:column;gap:8px;width:128px;flex:none;padding-top:2px">
         <button class="chip on" id="fxOn" data-tip="Fixer on or off (A/B). Off passes the bass untouched. Key: B." style="height:28px;padding:0 4px">Fixer on</button>
         <button class="chip" id="fxPol" data-tip="Flip the polarity of the bass. A flipped bass turns cancelling into adding, and the other way round. Key: P." style="height:28px;padding:0 4px">Flip polarity</button>
@@ -195,7 +196,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
   <div class="row" id="demo" style="position:absolute;left:52px;top:687px;width:770px;height:29px;gap:12px">
     <button class="btn" id="bPlay" data-tip="Play or stop the demo loop (Space). The sound restarts when you move a control; that is a limit of this preview page." style="height:28px;padding:0 14px">&#9654; Play</button>
     <span class="lab" style="color:var(--dim);font-size:14px">Demo only</span>
-    <select id="selSig" style="height:28px;width:230px" data-tip="Demo kick and bass made inside this page. In the plugin the kick comes in through the sidechain and the bass is the track."><option value="sub">Bass on the kick (sub)</option><option value="off">Offbeat bass</option><option value="offoct">Offbeat bass, low and high octave</option><option value="rolloct">Rolling bass, low high low</option><option value="roll">Rolling bass, one note</option><option value="offmel">Offbeat bassline, note changes</option><option value="rollmel">Rolling melodic bassline</option><option value="onmel">Sustained bass, note changes</option><option value="house">Syncopated house bass</option><option value="short">Short punchy kick + long sub</option><option value="a1">Kick + sub in A (55 Hz)</option><option value="oct">Bass one octave above the kick</option><option value="long">Long bass, kick 6% detuned</option><option value="free">Free-running bass (no retrigger)</option></select>
+    <select id="selSig" style="height:28px;width:230px" data-tip="Demo kick and bass made inside this page. In the plugin the kick comes in through the sidechain and the bass is the track."><option value="sub">Bass on the kick (sub)</option><option value="off">Offbeat bass</option><option value="oct80">80s octave bass: low on the kick, high between</option><option value="offoct">Offbeat bass, low and high octave</option><option value="rolloct">Rolling bass, low high low</option><option value="roll">Rolling bass, one note</option><option value="offmel">Offbeat bassline, note changes</option><option value="rollmel">Rolling melodic bassline</option><option value="onmel">Sustained bass, note changes</option><option value="house">Syncopated house bass</option><option value="short">Short punchy kick + long sub</option><option value="a1">Kick + sub in A (55 Hz)</option><option value="oct">Bass one octave above the kick</option><option value="long">Long bass, kick 6% detuned</option><option value="free">Free-running bass (no retrigger)</option></select>
     <span class="lab" style="color:var(--dim);font-size:15px">Bass start</span>
     <div class="sl" id="slBph" tabindex="0" style="max-width:160px;min-width:120px" data-tip="Where the demo bass starts in its cycle, 0 to 360 degrees. Move it to make the demo clash or line up. Double click to reset."><div class="trk"></div><i class="thumb"></i></div>
     <span class="val" id="vBph" style="width:60px">150 deg</span>
@@ -230,7 +231,7 @@ var NOTES=[['E1',41.20],['F1',43.65],['F#1',46.25],['G1',49.00],['G#1',51.91],['
 
 /* ===== state ===== */
 var DEF={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false};
-var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:false,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
+var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:false,low:false,deep:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
 var SET={theme:'B',bubbles:true,power:false};
 try{var sv=JSON.parse(localStorage.getItem('phasepaw.settings.v1')||'{}'); if(sv.theme&&'ABC'.indexOf(sv.theme)>=0)SET.theme=sv.theme; if(typeof sv.bubbles==='boolean')SET.bubbles=sv.bubbles; if(typeof sv.power==='boolean')SET.power=sv.power;}catch(e){}
 function saveSettings(){try{localStorage.setItem('phasepaw.settings.v1',JSON.stringify(SET));}catch(e){}}
@@ -282,7 +283,7 @@ function patterns(){var e8=0.5*T,s=0.25*T,r=0.015;
   function off(n){return [[e8,0.13,n]];}
   function roll(a,b,c){return [[s,0.07,a,r],[2*s,0.07,b,r],[3*s,0.07,c,r]];}
   return {sub:[[[0,0.26,0]]],long:[[[0,0.32,0]]],off:[off(0)],roll:[roll(0,0,0)],
-    offoct:[off(0),off(12),off(0),off(12)],rolloct:[roll(0,12,0)],
+    offoct:[off(0),off(12),off(0),off(12)],oct80:[[[0,0.12,0],[e8,0.12,12]]],rolloct:[roll(0,12,0)],
     offmel:[off(0),off(0),off(3),off(5)],rollmel:[roll(0,0,0),roll(0,0,3),roll(5,5,5),roll(3,3,-2)],
     onmel:[[[0,0.3,0]],[[0,0.3,0]],[[0,0.3,-2]],[[0,0.3,3]]],
     house:[[[0,0.1,0],[3*s,0.06,0,r]],[[e8,0.1,0]],[[0,0.1,3],[3*s,0.06,3,r]],[[e8,0.1,5]]]};}
@@ -345,7 +346,9 @@ function autoAlign(){
   var pol=1;if(br>90&&br<270){pol=-1;br=(br+180)%360;}
   bt=Math.round(bt*20)/20;var bc=corrWith(br,bt,pol).c,cands=[[1,0,0],[-1,0,0],[pol,br,0],[pol,0,bt]];
   for(var i=0;i<cands.length;i++){var q=cands[i];if(corrWith(q[1],q[2],q[0]).c>=bc-0.01){pol=q[0];br=q[1];bt=q[2];break;}}
-  S.pol=pol;S.rot=br;S.time=bt;syncUI();recompute(false);
+  S.pol=pol;S.rot=br;S.time=bt;
+  if(S.deep){setMask();process();for(var j=0;j<BANDS.length;j++){if(!(S.full||(BANDS[j]>=S.lo/1.15&&BANDS[j]<=S.hi*1.15))||D.be[j]<-40)continue;var bb=bandBest(j);if(bandCorrAt(j,bb)-bandCorrAt(j,0)>0.03)S.bp[j]=bb;}}
+  syncUI();recompute(false);
 }
 function process(){
   var on=S.on,th=S.rot*Math.PI/180,d=S.time/1000,pol=S.pol;
@@ -762,6 +765,7 @@ $('#fxPol').addEventListener('click',function(){S.pol=-S.pol;syncUI();recompute(
 $('#fxFull').addEventListener('click',function(){S.full=!S.full;syncUI();recompute(false);});
 $('#fxReset').addEventListener('click',function(){S.bp=S.bp.map(function(){return 0;});S.pol=1;S.rot=0;S.time=0;S.lo=20;S.hi=200;S.full=false;syncUI();recompute(false);});
 $('#fxAuto').addEventListener('click',autoAlign);
+$('#fxDeep').addEventListener('click',function(){S.deep=!S.deep;this.className='chip mon'+(S.deep?' on':'');});
 $('#monMono').addEventListener('click',function(){S.mono=!S.mono;this.className='chip mon'+(S.mono?' on':'');scheduleAudio();});
 $('#monLow').addEventListener('click',function(){S.low=!S.low;this.className='chip mon'+(S.low?' on':'');scheduleAudio();});
 $('#snapRot').addEventListener('click',function(){slRot.set(D.bestRot);});
