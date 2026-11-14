@@ -118,6 +118,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 #demo .btn,#demo select{height:23px!important;font-size:14px;border-radius:6px}
 #demo .sl{height:22px}#demo .sl .trk{top:5px;height:10px}#demo .sl .thumb{height:20px;width:14px}#demo .sl .thumb:after{left:6px;top:5px;height:10px}
 #verdict{font-size:33px}
+.sl .sweet{position:absolute;top:4px;height:20px;box-sizing:border-box;border:2px solid #fff;border-radius:10px;box-shadow:0 0 9px var(--good),inset 0 0 6px rgba(255,255,255,.35);pointer-events:none;text-decoration:none}
 </style>
 </head>
 <body>
@@ -177,11 +178,11 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
       </div>
       <div style="flex:1">
         <div class="row" style="justify-content:space-between"><span class="lab">Phase rotation</span><span class="val" id="vRot">0 deg</span></div>
-        <div class="row"><div class="sl" id="slRot" tabindex="0" data-tip="Turns the phase of the bass inside the chosen band, 0 to 360 degrees, without changing its level. The track colour shows the result at every position: mint = in phase, yellow = careful, pink = cancelling. The arrow marks the best position. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">0</span><span class="tk" style="left:25.0%">90</span><span class="tk" style="left:50.0%">180</span><span class="tk" style="left:75.0%">270</span><span class="tk" style="left:100.0%">360</span><b class="best" id="bestRot"></b><i class="thumb"></i></div><button class="btn" id="snapRot" data-tip="Jump to the best rotation for the current settings." style="height:26px;padding:0 10px">Best</button></div>
+        <div class="row"><div class="sl" id="slRot" tabindex="0" data-tip="Turns the phase of the bass inside the chosen band, 0 to 360 degrees, without changing its level. The track colour shows the result at every position: mint = in phase, yellow = careful, pink = cancelling. The arrow marks the best position. The white outline is the sweet spot: anywhere inside it the verdict stays green, so pick the spot that sounds best. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">0</span><span class="tk" style="left:25.0%">90</span><span class="tk" style="left:50.0%">180</span><span class="tk" style="left:75.0%">270</span><span class="tk" style="left:100.0%">360</span><b class="best" id="bestRot"></b><i class="thumb"></i></div><button class="btn" id="snapRot" data-tip="Jump to the best rotation for the current settings." style="height:26px;padding:0 10px">Best</button></div>
       </div>
       <div style="flex:1">
         <div class="row" style="justify-content:space-between"><span class="lab">Time shift</span><span class="val" id="vTime">0.00 ms</span></div>
-        <div class="row"><div class="sl" id="slTime" tabindex="0" data-tip="Moves the bass earlier (left) or later (right) by up to 10 ms. Same colour cues as the rotation track. You can also drag the bass in the Kick and bass view. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">-10</span><span class="tk" style="left:25.0%">-5</span><span class="tk" style="left:50.0%">0</span><span class="tk" style="left:75.0%">+5</span><span class="tk" style="left:100.0%">+10 ms</span><b class="best" id="bestTime"></b><i class="thumb"></i></div><button class="btn" id="snapTime" data-tip="Jump to the best time shift for the current settings." style="height:26px;padding:0 10px">Best</button></div>
+        <div class="row"><div class="sl" id="slTime" tabindex="0" data-tip="Moves the bass earlier (left) or later (right) by up to 10 ms. Same colour cues and sweet spot outline as the rotation track. You can also drag the bass in the Kick and bass view. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">-10</span><span class="tk" style="left:25.0%">-5</span><span class="tk" style="left:50.0%">0</span><span class="tk" style="left:75.0%">+5</span><span class="tk" style="left:100.0%">+10 ms</span><b class="best" id="bestTime"></b><i class="thumb"></i></div><button class="btn" id="snapTime" data-tip="Jump to the best time shift for the current settings." style="height:26px;padding:0 10px">Best</button></div>
       </div>
     </div>
   </div>
@@ -225,7 +226,7 @@ var NOTES=[['E1',41.20],['F1',43.65],['F#1',46.25],['G1',49.00],['G#1',51.91],['
 
 /* ===== state ===== */
 var DEF={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false};
-var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-9,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:true,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
+var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:true,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
 var SET={theme:'B',bubbles:true,power:false};
 try{var sv=JSON.parse(localStorage.getItem('phasepaw.settings.v1')||'{}'); if(sv.theme&&'ABC'.indexOf(sv.theme)>=0)SET.theme=sv.theme; if(typeof sv.bubbles==='boolean')SET.bubbles=sv.bubbles; if(typeof sv.power==='boolean')SET.power=sv.power;}catch(e){}
 function saveSettings(){try{localStorage.setItem('phasepaw.settings.v1',JSON.stringify(SET));}catch(e){}}
@@ -545,6 +546,20 @@ function makeSlider(id,o){
   el.addEventListener('keydown',function(e){var st=(o.kstep||o.step||1)*(e.shiftKey?10:1);if(e.key==='ArrowRight'||e.key==='ArrowUp'){api.set(o.get()+st);e.preventDefault();}else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){api.set(o.get()-st);e.preventDefault();}});
   sliders[id]=api;return api;
 }
+function sweetSegs(kind){
+  var n=kind==='rot'?360:201,ok=[],i,b;
+  for(i=0;i<n;i++)ok.push((kind==='rot'?corrWith(i,S.time,S.pol).c:corrWith(S.rot,-10+i*0.1,S.pol).c)>=0.5);
+  b=kind==='rot'?Math.round(D.bestRot)%360:clamp(Math.round((D.bestTime+10)/0.1),0,n-1);
+  if(!ok[b])return [];
+  if(kind==='rot'){var l=b,r=b,c=0;while(c<360&&ok[(l-1+360)%360]){l--;c++;}if(c>=359)return [[0,1]];while(ok[(r+1)%360]&&r-l<359)r++;
+    if(l<0&&r>=0&&l+360>r)return [[0,(r+0.5)/360],[(l+360-0.5)/360,1]];if(r>359)return [[0,(r-360+0.5)/360],[(l-0.5)/360,1]];return [[Math.max(0,(l-0.5)/360),Math.min(1,(r+0.5)/360)]];}
+  var l2=b,r2=b;while(l2>0&&ok[l2-1])l2--;while(r2<n-1&&ok[r2+1])r2++;return [[l2/(n-1),r2/(n-1)]];
+}
+function paintSweet(api,segs){api.sw=api.sw||[];var th=api.el.querySelector('.thumb');
+  for(var i=0;i<2;i++){if(!api.sw[i]){api.sw[i]=document.createElement('u');api.sw[i].className='sweet';api.el.insertBefore(api.sw[i],th);}
+    var e=api.sw[i],sg=segs[i];if(!sg||sg[1]-sg[0]<0.004){e.style.display='none';continue;}e.style.display='block';e.style.left=(sg[0]*100)+'%';e.style.width=((sg[1]-sg[0])*100)+'%';
+    e.style.borderLeftWidth=(segs.length>1&&sg[0]===0)?'0':'2px';e.style.borderRightWidth=(segs.length>1&&sg[1]===1)?'0':'2px';}
+}
 function paintTrack(api,vals,min,max,bestVal){
   var n=vals.length,stops=[];for(var i=0;i<n;i++){stops.push(corrColor(vals[i])+' '+(i/(n-1)*100).toFixed(1)+'%');}
   api.trk.style.background='linear-gradient(90deg,'+stops.join(',')+')';
@@ -571,13 +586,14 @@ function refreshExtras(){
   if(unstable)h.textContent='At the source: turn on retrigger (phase reset) first';
   else if(!sf)h.textContent='';
   else if(Math.abs(sf.deg)<1.5)h.textContent=sf.bands?'At the source: nothing to change (turned bands not included)':'At the source: nothing to change';
-  else if(S.on&&S.pol<0&&Math.abs(S.rot)<1.5&&Math.abs(S.time)<0.03)h.textContent='Or fix it at the source: flip the polarity of the bass (invert the clip or the synth output)'+(sf.bands?' (bands not included)':'');
-  else{var d=Math.round(sf.deg),ms=Math.abs(sf.ms);h.textContent='Or fix it at the source: start phase '+(d>0?'+':'')+d+'° at '+sf.f.toFixed(0)+' Hz, or nudge the bass '+ms.toFixed(1)+' ms '+(sf.ms>0?'later':'earlier')+(sf.bands?' (bands not included)':'');}
+  else if(S.on&&S.pol<0&&Math.abs(S.rot)<1.5&&Math.abs(S.time)<0.03)h.textContent='Or at the source: flip the bass polarity (invert the clip or the synth)'+(sf.bands?' (bands not included)':'');
+  else{var d=Math.round(sf.deg),ms=Math.abs(sf.ms);h.textContent='Or at the source: start phase '+(d>0?'+':'')+d+'° at '+sf.f.toFixed(0)+' Hz, or nudge the bass '+ms.toFixed(1)+' ms '+(sf.ms>0?'later':'earlier')+(sf.bands?' (bands not included)':'');}
 }
 function recompute(sigChanged,noAudio){
   if(sigChanged)genSignals();
   setMask();process();
   paintTrack(slRot,D.rotC,0,360,D.bestRot);paintTrack(slTime,D.timeC,-10,10,D.bestTime);
+  paintSweet(slRot,sweetSegs('rot'));paintSweet(slTime,sweetSegs('time'));
   refreshVerdict();refreshExtras();dirty=true;if(!noAudio)scheduleAudio();
 }
 
@@ -586,9 +602,9 @@ var ac=null,src=null,gain=null,audioTimer=null;
 function applyVol(){if(gain)gain.gain.value=Math.pow(10,S.vol/20);}
 function bandOf(arr){var F=rfft(arr),r=new Float64Array(H+1),im=new Float64Array(H+1);for(var k=0;k<=H;k++){r[k]=F.re[k]*Mk[k];im[k]=F.im[k]*Mk[k];}return irfft(r,im);}
 function buildBuf(){
-  var buf=ac.createBuffer(1,N*4,SR),ch=buf.getChannelData(0),kk=S.low?bandOf(kick):kick,g=S.low?1.5:0.95;
+  var buf=ac.createBuffer(1,N*4,SR),ch=buf.getChannelData(0),kk=S.low?bandOf(kick):kick,g=0.45;
   for(var r=0;r<4;r++){var b=basses?(S.on?fixArr(basses[r]):basses[r]):(S.on?D.bf:bass0);if(S.low)b=bandOf(b);var out=new Float32Array(N);
-    for(var n=0;n<N;n++)out[n]=Math.tanh((kk[n]+b[n])*g)*0.92;ch.set(out,r*N);}
+    for(var n=0;n<N;n++)out[n]=Math.max(-1,Math.min(1,(kk[n]+b[n])*g));ch.set(out,r*N);}
   return buf;
 }
 function startSrc(){

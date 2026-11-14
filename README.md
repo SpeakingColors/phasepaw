@@ -22,6 +22,7 @@ Design stage. There is no plugin build to download yet. The interactive mockup i
 - A "fix at the source" hint: the same correction as a synth start phase or a clip nudge in ms, so the fixer can stay off.
 - A warning when the bass phase jumps from hit to hit (free-running oscillators), with the advice to turn on retrigger.
 - Listen buttons: kick and bass in mono, and low end only.
+- A sweet spot outline on both sliders: anywhere inside it the result stays in phase, so you can choose by ear.
 
 ## Planned
 
