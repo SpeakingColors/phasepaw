@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Done
-- Interactive design mockup (docs/mockups), version 8.
+- Interactive design mockup (docs/mockups), version 9.
 
 ## Next
 - Decide the real-time method for phase rotation and per band phase (allpass, FIR or FFT based) and its latency; report the latency to the host.

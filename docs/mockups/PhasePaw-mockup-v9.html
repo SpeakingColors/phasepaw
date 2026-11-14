@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhasePaw v7 design mockup, Studio 87</title>
+<title>PhasePaw v9 design mockup, Studio 87</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root,#page[data-skin="B"]{--page:#0b0b0d;--panel:#14151a;--panel2:#1e2028;--line:#343746;--disp:#06080a;--grid:#262b36;--text:#f4f5f7;--dim:#c3c7d2;--title:#E1CBF4;--selbg:#241238;--selbd:#CD92FE;--seltx:#E1CBF4;--kick:#FF1383;--bass:#02EBBA;--sum:#FFD100;--good:#02EBBA;--warn:#FFD100;--bad:#FF1383}
@@ -123,6 +123,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 .chip.mon .led{width:9px;height:9px;border-radius:50%;background:#2a2d36;box-shadow:inset 0 1px 2px rgba(0,0,0,.9)}
 .chip.mon.on{color:#04130f;background:linear-gradient(180deg,#7df7da,#02c79d);border-color:#b6ffee;box-shadow:0 0 14px rgba(2,235,186,.55),inset 0 1px 0 rgba(255,255,255,.5)}
 .chip.mon.on .led{background:#fff;box-shadow:0 0 6px #fff}
+.btn.primary svg{width:20px;height:20px}
 </style>
 </head>
 <body>
@@ -149,7 +150,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
   </div>
 
   <div class="panel" id="pTrace" style="left:52px;top:56px;width:720px;height:296px">
-    <div class="ph"><h2>Kick and bass</h2><span class="sp"></span><span class="hint">low end only, after each kick hit</span></div>
+    <div class="ph"><h2>Kick and bass</h2><span class="sp"></span><span class="hint" id="hitLab">low end only, after each kick hit</span></div>
     <canvas id="cvTrace" style="width:704px;height:252px;margin:5px 7px 0"></canvas>
   </div>
 
@@ -175,7 +176,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
     <div class="ph"><h2>Fixer (acts on the bass)</h2><span class="hint" id="srcHint" data-tip="The same fix done before the plugin, so you can switch the fixer off and add no latency. In a synth: move the oscillator start phase by this many degrees (retrigger must be on). With an audio clip: nudge it by this many ms. It matches the fixer at the bass note itself; bands you turned by hand are not included." style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--seltx);margin-left:8px"></span>
       <button class="btn" id="fxReset" data-tip="Put the fixer back to its start values. Key: R." style="height:24px;padding:0 10px">Reset</button></div>
     <div style="display:flex;gap:20px;padding:4px 14px 0;align-items:flex-start">
-      <button class="btn primary" id="fxAuto" data-tip="Finds the best fix in one click: tries every time shift and phase rotation together, then flips the polarity instead when that needs less rotation. It clears any bands you turned by hand. Key: A." style="height:66px;width:150px;flex:none"><svg viewBox="0 0 24 24" width="24" height="24" fill="#1d0a2b" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.6" ry="4.6"/><circle cx="5.3" cy="10.6" r="2.3"/><circle cx="9.4" cy="6.4" r="2.5"/><circle cx="14.6" cy="6.4" r="2.5"/><circle cx="18.7" cy="10.6" r="2.3"/></svg><span>AUTO ALIGN</span></button>
+      <div style="display:flex;flex-direction:column;gap:5px;width:150px;flex:none"><button class="btn primary" id="fxAuto" data-tip="Finds the best fix in one click: tries every time shift and phase rotation together, then flips the polarity instead when that needs less rotation. It clears any bands you turned by hand. Key: A." style="height:44px;width:150px;flex:none;flex-direction:row;gap:8px"><svg viewBox="0 0 24 24" width="24" height="24" fill="#1d0a2b" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.6" ry="4.6"/><circle cx="5.3" cy="10.6" r="2.3"/><circle cx="9.4" cy="6.4" r="2.5"/><circle cx="14.6" cy="6.4" r="2.5"/><circle cx="18.7" cy="10.6" r="2.3"/></svg><span>AUTO ALIGN</span></button><button class="chip mon on" id="fxDeep" data-tip="Per band fix. When lit, Auto Align also turns each frequency band to its own best phase, so basslines with several notes or octaves line up much better. The price in the real plugin: it needs some latency. Switch it off for the simple fix with one setting for everything. Clicking it runs Auto Align again." style="height:20px;font-size:13px;justify-content:center"><i class="led"></i>Per band fix</button></div>
       <div style="display:flex;flex-direction:column;gap:8px;width:128px;flex:none;padding-top:2px">
         <button class="chip on" id="fxOn" data-tip="Fixer on or off (A/B). Off passes the bass untouched. Key: B." style="height:28px;padding:0 4px">Fixer on</button>
         <button class="chip" id="fxPol" data-tip="Flip the polarity of the bass. A flipped bass turns cancelling into adding, and the other way round. Key: P." style="height:28px;padding:0 4px">Flip polarity</button>
@@ -195,7 +196,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
   <div class="row" id="demo" style="position:absolute;left:52px;top:687px;width:770px;height:29px;gap:12px">
     <button class="btn" id="bPlay" data-tip="Play or stop the demo loop (Space). The sound restarts when you move a control; that is a limit of this preview page." style="height:28px;padding:0 14px">&#9654; Play</button>
     <span class="lab" style="color:var(--dim);font-size:14px">Demo only</span>
-    <select id="selSig" style="height:28px;width:230px" data-tip="Demo kick and bass made inside this page. In the plugin the kick comes in through the sidechain and the bass is the track."><option value="sub">Kick + sub on the hit</option><option value="off">Kick + offbeat bass</option><option value="roll">Rolling bass, gap on the beat</option><option value="short">Short punchy kick + long sub</option><option value="a1">Kick + sub in A (55 Hz)</option><option value="oct">Bass one octave above the kick</option><option value="long">Long bass, kick 6% detuned</option><option value="free">Free-running bass (no retrigger)</option></select>
+    <select id="selSig" style="height:28px;width:230px" data-tip="Demo kick and bass made inside this page. In the plugin the kick comes in through the sidechain and the bass is the track."><option value="sub">Bass on the kick (sub)</option><option value="off">Offbeat bass</option><option value="oct80">80s octave bass: low on the kick, high between</option><option value="offoct">Offbeat bass, low and high octave</option><option value="rolloct">Rolling bass, low high low</option><option value="roll">Rolling bass, one note</option><option value="offmel">Offbeat bassline, note changes</option><option value="rollmel">Rolling melodic bassline</option><option value="onmel">Sustained bass, note changes</option><option value="house">Syncopated house bass</option><option value="short">Short punchy kick + long sub</option><option value="a1">Kick + sub in A (55 Hz)</option><option value="oct">Bass one octave above the kick</option><option value="long">Long bass, kick 6% detuned</option><option value="free">Free-running bass (no retrigger)</option></select>
     <span class="lab" style="color:var(--dim);font-size:15px">Bass start</span>
     <div class="sl" id="slBph" tabindex="0" style="max-width:160px;min-width:120px" data-tip="Where the demo bass starts in its cycle, 0 to 360 degrees. Move it to make the demo clash or line up. Double click to reset."><div class="trk"></div><i class="thumb"></i></div>
     <span class="val" id="vBph" style="width:60px">150 deg</span>
@@ -230,7 +231,7 @@ var NOTES=[['E1',41.20],['F1',43.65],['F#1',46.25],['G1',49.00],['G#1',51.91],['
 
 /* ===== state ===== */
 var DEF={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false};
-var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:false,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
+var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:false,low:false,deep:true,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
 var SET={theme:'B',bubbles:true,power:false};
 try{var sv=JSON.parse(localStorage.getItem('phasepaw.settings.v1')||'{}'); if(sv.theme&&'ABC'.indexOf(sv.theme)>=0)SET.theme=sv.theme; if(typeof sv.bubbles==='boolean')SET.bubbles=sv.bubbles; if(typeof sv.power==='boolean')SET.power=sv.power;}catch(e){}
 function saveSettings(){try{localStorage.setItem('phasepaw.settings.v1',JSON.stringify(SET));}catch(e){}}
@@ -266,39 +267,44 @@ function genKick(f1,sh){
   for(var m=0;m<N;m++)k[m]*=0.9/mx;return k;
 }
 function noteEnv(t,len,att,rel){if(t<0||t>len+rel)return 0;var a=Math.min(1,t/att);var r=t<len?1:Math.max(0,1-(t-len)/rel);return a*r;}
-function genBass(f,phDeg,sig){
-  var b=new Float64Array(N),phi=phDeg*Math.PI/180,mx=0,notes,amps=[],nh=Math.min(110,Math.floor(4800/f));
-  for(var h=1;h<=nh;h++){var fr=h*f;amps.push((h===1?1.7:1/Math.pow(h,0.92))/(1+Math.pow(fr/2600,2)));}
-  if(sig==='sub')notes=[[0,0.26]];
-  else if(sig==='roll')notes=[[0.25*T,0.07],[0.5*T,0.07],[0.75*T,0.07]];
-  else if(sig==='off')notes=[[0.5*T,0.13]];
-  else notes=[[0,0.32]];
-  for(var n=0;n<N;n++){var t=n/SR,v=0;
-    for(var q=0;q<notes.length;q++){var lt=t-notes[q][0];if(lt<0)continue;
-      var e=noteEnv(lt,notes[q][1],0.003,sig==='roll'?0.015:0.04);if(!e)continue;
-      var w=2*Math.PI*f*lt+phi,s1=Math.sin(w),c1=Math.cos(w),sp=0,sc=s1,cp=1,cc=c1,s=0;
-      for(var h2=0;h2<nh;h2++){s+=amps[h2]*sc;var ns2=2*c1*sc-sp;sp=sc;sc=ns2;}
-      v+=e*s;}
-    b[n]=v;mx=Math.max(mx,Math.abs(v));}
-  for(var m=0;m<N;m++)b[m]*=0.75/mx;return b;
+function genNotes(f0,phDeg,notes){
+  var b=new Float64Array(N),phi=phDeg*Math.PI/180;
+  notes.forEach(function(nt){var f=f0*Math.pow(2,(nt[2]||0)/12),nh=Math.min(110,Math.floor(4800/f)),amps=[],rel=nt[3]||0.04;
+    for(var h=1;h<=nh;h++){amps.push((h===1?1.7:1/Math.pow(h,0.92))/(1+Math.pow(h*f/2600,2)));}
+    var n0=Math.max(0,Math.floor(nt[0]*SR)),n1=Math.min(N,Math.ceil((nt[0]+nt[1]+rel)*SR));
+    for(var n=n0;n<n1;n++){var lt=n/SR-nt[0];if(lt<0)continue;var e=noteEnv(lt,nt[1],0.003,rel);if(!e)continue;
+      var w=2*Math.PI*f*lt+phi,c1=Math.cos(w),sp=0,sc=Math.sin(w),sm=0;
+      for(var h2=0;h2<nh;h2++){sm+=amps[h2]*sc;var ns2=2*c1*sc-sp;sp=sc;sc=ns2;}
+      b[n]+=e*sm;}});
+  return b;
 }
-var basses=null,hitI=0,hits=[];
+/* demo patterns: one list of notes per beat; a note is [start s, length s, semitones, release s] */
+function patterns(){var e8=0.5*T,s=0.25*T,r=0.015;
+  function off(n){return [[e8,0.13,n]];}
+  function roll(a,b,c){return [[s,0.07,a,r],[2*s,0.07,b,r],[3*s,0.07,c,r]];}
+  return {sub:[[[0,0.26,0]]],long:[[[0,0.32,0]]],off:[off(0)],roll:[roll(0,0,0)],
+    offoct:[off(0),off(12),off(0),off(12)],oct80:[[[0,0.12,0],[e8,0.12,12]]],rolloct:[roll(0,12,0)],
+    offmel:[off(0),off(0),off(3),off(5)],rollmel:[roll(0,0,0),roll(0,0,3),roll(5,5,5),roll(3,3,-2)],
+    onmel:[[[0,0.3,0]],[[0,0.3,0]],[[0,0.3,-2]],[[0,0.3,3]]],
+    house:[[[0,0.1,0],[3*s,0.06,0,r]],[[e8,0.1,0]],[[0,0.1,3],[3*s,0.06,3,r]],[[e8,0.1,5]]]};}
+var basses=null,hitI=0,hits=[],BL=[];
 function genSignals(){
-  var sg=S.sig,f=(sg==='a1')?55:NOTES[S.note][1],pat={sub:'sub',roll:'roll',off:'off',long:'long',short:'sub',oct:'sub',a1:'sub',free:'sub'}[sg]||'sub';
+  var sg=S.sig,f=(sg==='a1')?55:NOTES[S.note][1],P=patterns(),pat=P[{short:'sub',oct:'sub',a1:'sub',free:'sub'}[sg]||sg]||P.sub;
   kick=genKick(f*(sg==='long'?1.06:1),sg==='short');
-  var bf=(sg==='oct')?f*2:f;
-  if(sg==='free'){basses=[0,100,215,305].map(function(o){return genBass(bf,(S.bph+o)%360,pat);});hitI=0;bass0=basses[0];}
-  else{basses=null;bass0=genBass(bf,S.bph,pat);}
-  hits=[];Xs=rfft(kick);Bs=rfft(bass0);BRs=Bs;
+  var bf=(sg==='oct')?f*2:f,raw;
+  if(sg==='free')raw=[0,100,215,305].map(function(o){return genNotes(bf,(S.bph+o)%360,pat[0]);});
+  else raw=pat.map(function(nts){return genNotes(bf,S.bph,nts);});
+  var mx=1e-9;raw.forEach(function(b){for(var n=0;n<N;n++)mx=Math.max(mx,Math.abs(b[n]));});raw.forEach(function(b){for(var n=0;n<N;n++)b[n]*=0.75/mx;});
+  basses=raw.length>1?raw:null;BL=raw.map(function(b){return rfft(b);});hitI=0;bass0=raw[0];
+  Xs=rfft(kick);Bs=BL[0];BRs=Bs;
 }
-function setHit(i){if(!basses)return;hitI=i;bass0=basses[i];Bs=rfft(bass0);BRs=Bs;recompute(false,true);
-  var v=D.vec0,m=Math.sqrt(v.x*v.x+v.y*v.y);if(m>0.05){hits.push([v.x/m,v.y/m]);if(hits.length>8)hits.shift();}refreshExtras();}
-function hitSpread(){if(hits.length<3)return 1;var x=0,y=0;hits.forEach(function(h){x+=h[0];y+=h[1];});return Math.sqrt(x*x+y*y)/hits.length;}
+function setHit(i){if(!basses)return;hitI=i;bass0=basses[i];Bs=BL[i];BRs=Bs;process();refreshVerdict();refreshExtras();dirty=true;}
 function fixArr(arr){var F=rfft(arr),r=new Float64Array(H+1),im=new Float64Array(H+1),th=S.rot*Math.PI/180,d=S.time/1000;
   for(var k=0;k<=H;k++){var m=Mk[k],gr=1,gi=0;if(m>0){var ph=th+Ex[k]-2*Math.PI*k*DF*d;gr=(1-m)+m*S.pol*Math.cos(ph);gi=m*S.pol*Math.sin(ph);}r[k]=F.re[k]*gr-F.im[k]*gi;im[k]=F.re[k]*gi+F.im[k]*gr;}return irfft(r,im);}
 /* bass note inside the band, and the same fix done before the plugin */
-function bassNote(){var best=0,bk=0;for(var k=kmin+1;k<kmax;k++){var m=Mk[k];if(m<0.5)continue;var a=Math.sqrt(Bs.re[k]*Bs.re[k]+Bs.im[k]*Bs.im[k]);if(a>best){best=a;bk=k;}}
-  if(!bk)return 0;var mg=function(k){return Math.sqrt(Bs.re[k]*Bs.re[k]+Bs.im[k]*Bs.im[k]);},a0=mg(bk-1),a1=mg(bk),a2=mg(bk+1),den=a0-2*a1+a2,off=den?0.5*(a0-a2)/den:0;return (bk+clamp(off,-0.5,0.5))*DF;}
+function bassNote(){var mg=function(k){var a=0;for(var q=0;q<BL.length;q++){var B=BL[q];a+=Math.sqrt(B.re[k]*B.re[k]+B.im[k]*B.im[k]);}return a;},best=0,bk=0;
+  for(var k=kmin+1;k<kmax;k++){if(Mk[k]<0.5)continue;var a=mg(k);if(a>best){best=a;bk=k;}}
+  if(!bk)return 0;var a0=mg(bk-1),a1=mg(bk),a2=mg(bk+1),den=a0-2*a1+a2,off=den?0.5*(a0-a2)/den:0;return (bk+clamp(off,-0.5,0.5))*DF;}
 function sourceFix(){var f0=bassNote();if(!f0)return null;var psi=S.on?(S.rot+(S.pol<0?180:0)-360*f0*S.time/1000):0;psi=((psi%360)+540)%360-180;
   return {f:f0,deg:psi,ms:-psi/(360*f0)*1000,bands:S.on&&S.bp.some(function(v){return Math.abs(v)>0.5;})};}
 
@@ -306,20 +312,31 @@ function sourceFix(){var f0=bassNote();if(!f0)return null;var psi=S.on?(S.rot+(S
 var Mk=new Float64Array(H+1),kmin=1,kmax=H;
 function ss(x){x=clamp(x,0,1);return x*x*(3-2*x);}
 var Ex=new Float64Array(H+1);
-function setEx(){for(var k=0;k<=H;k++){var p=Math.round(Math.log2(Math.max(k*DF,1)/25)*3);p=p<0?0:(p>14?14:p);Ex[k]=S.bp[p]*Math.PI/180;}}
+function setEx(){for(var k=0;k<=H;k++){if(!S.on){Ex[k]=0;continue;}var p=Math.round(Math.log2(Math.max(k*DF,1)/25)*3);p=p<0?0:(p>14?14:p);Ex[k]=S.bp[p]*Math.PI/180;}}
 function setMask(){setEx();
   var top=S.full?2000:2500;kmax=Math.min(H,Math.floor(top/DF));kmin=Math.max(1,Math.floor(12/DF));
   for(var k=0;k<=H;k++){var f=k*DF,m=0;
     if(k>=kmin&&k<=kmax){ if(S.full)m=1;else{var lr=Math.log2(f/S.lo),hr=Math.log2(S.hi/f);m=ss((lr+0.3)/0.6)*ss((hr+0.3)/0.6);} }
     Mk[k]=m;}
 }
+/* the most that kick and bass can add up with one phase turn and one time shift ("overlap") */
+var cmaxBase=0,tDeep=0;
+function calcMax(){var ks=[],k,q,B,w=0,bestG=0,bestB=-1;for(k=kmin;k<=kmax;k++){if(Mk[k]>=1e-3)ks.push(k);}
+  var n=ks.length,cre=new Float64Array(n),cim=new Float64Array(n),bd=new Int8Array(n);
+  for(var i=0;i<n;i++){k=ks[i];var m=Mk[k],xr=Xs.re[k],xi=Xs.im[k],xm=Math.sqrt(xr*xr+xi*xi),p=Math.round(Math.log2(Math.max(k*DF,1)/25)*3);bd[i]=p<0?0:(p>14?14:p);
+    for(q=0;q<BL.length;q++){B=BL[q];cre[i]+=m*(xr*B.re[k]+xi*B.im[k]);cim[i]+=m*(xi*B.re[k]-xr*B.im[k]);w+=m*xm*Math.sqrt(B.re[k]*B.re[k]+B.im[k]*B.im[k]);}}
+  var ba=new Float64Array(15),bb=new Float64Array(15);tDeep=0;
+  for(var t=-10;t<=10.001;t+=0.1){var a=0,b=0,j;for(j=0;j<15;j++){ba[j]=0;bb[j]=0;}
+    for(j=0;j<n;j++){var ph=2*Math.PI*ks[j]*DF*t/1000,c=Math.cos(ph),sn=Math.sin(ph),u=cre[j]*c-cim[j]*sn,v=cre[j]*sn+cim[j]*c;a+=u;b+=v;ba[bd[j]]+=u;bb[bd[j]]+=v;}
+    var mg=Math.sqrt(a*a+b*b);if(mg>bestG)bestG=mg;
+    var sb=0;for(j=0;j<15;j++)sb+=Math.sqrt(ba[j]*ba[j]+bb[j]*bb[j]);var sc=sb-0.004*Math.abs(t)*w;if(sc>bestB){bestB=sc;tDeep=-Math.round(t*10)/10;D.bMax=w>0?sb/w:0;}}
+  D.gMax=w>0?bestG/w:0;cmaxBase=S.deep?D.bMax:D.gMax;}
+function rel(c){var m=(D&&D.cmax)||1;return clamp(c/m,-1,1);}
 function corrWith(rotDeg,timeMs,pol){
-  var th=rotDeg*Math.PI/180,d=timeMs/1000,w=0,c=0;
+  var th=rotDeg*Math.PI/180,d=timeMs/1000,w=0,c=0,nb=BL.length;
   for(var k=kmin;k<=kmax;k++){var m=Mk[k];if(m<1e-3)continue;
-    var ph=th+Ex[k]-2*Math.PI*k*DF*d,rr=pol*Math.cos(ph),ri=pol*Math.sin(ph);
-    var gr=(1-m)+m*rr,gi=m*ri,br=Bs.re[k]*gr-Bs.im[k]*gi,bi=Bs.re[k]*gi+Bs.im[k]*gr;
-    var xr=Xs.re[k],xi=Xs.im[k];
-    w+=m*Math.sqrt((xr*xr+xi*xi)*(br*br+bi*bi));c+=m*(xr*br+xi*bi);}
+    var ph=th+Ex[k]-2*Math.PI*k*DF*d,rr=pol*Math.cos(ph),ri=pol*Math.sin(ph),gr=(1-m)+m*rr,gi=m*ri,xr=Xs.re[k],xi=Xs.im[k],x2=xr*xr+xi*xi;
+    for(var q=0;q<nb;q++){var B=BL[q],r0=B.re[k],i0=B.im[k],br=r0*gr-i0*gi,bi=r0*gi+i0*gr;w+=m*Math.sqrt(x2*(br*br+bi*bi));c+=m*(xr*br+xi*bi);}}
   var cc=w>0?c/w:0;return {c:cc,g:10*Math.log10(Math.max(1e-4,1+cc))};
 }
 var D={};
@@ -327,8 +344,8 @@ function bandCorrAt(i,rDeg){
   var lo=BANDS[i]*Math.pow(2,-1/6),hi=BANDS[i]*Math.pow(2,1/6),k0=Math.max(1,Math.ceil(lo/DF)),k1=Math.max(k0,Math.floor(hi/DF));
   var th=(S.rot+rDeg)*Math.PI/180,d=S.time/1000,w=0,c=0;
   for(var k=k0;k<=k1;k++){var m=Mk[k];var gr=1,gi=0;if(m>0){var ph=th-2*Math.PI*k*DF*d,rr=S.pol*Math.cos(ph),ri=S.pol*Math.sin(ph);gr=(1-m)+m*rr;gi=m*ri;}
-    var br=Bs.re[k]*gr-Bs.im[k]*gi,bi=Bs.re[k]*gi+Bs.im[k]*gr,xr=Xs.re[k],xi=Xs.im[k];
-    w+=Math.sqrt((xr*xr+xi*xi)*(br*br+bi*bi));c+=xr*br+xi*bi;}
+    var xr=Xs.re[k],xi=Xs.im[k],x2=xr*xr+xi*xi;
+    for(var q=0;q<BL.length;q++){var B=BL[q],br=B.re[k]*gr-B.im[k]*gi,bi=B.re[k]*gi+B.im[k]*gr;w+=Math.sqrt(x2*(br*br+bi*bi));c+=xr*br+xi*bi;}}
   return w>0?c/w:0;
 }
 function bandSolve(i,target,cur){var best=0,bd=9;for(var r=0;r<360;r+=3){var d=Math.abs(bandCorrAt(i,r)-target)+0.0008*Math.abs(((r-cur+540)%360)-180)/180;if(d<bd){bd=d;best=r;}}return best;}
@@ -342,16 +359,20 @@ function autoAlign(){
   var pol=1;if(br>90&&br<270){pol=-1;br=(br+180)%360;}
   bt=Math.round(bt*20)/20;var bc=corrWith(br,bt,pol).c,cands=[[1,0,0],[-1,0,0],[pol,br,0],[pol,0,bt]];
   for(var i=0;i<cands.length;i++){var q=cands[i];if(corrWith(q[1],q[2],q[0]).c>=bc-0.01){pol=q[0];br=q[1];bt=q[2];break;}}
-  S.pol=pol;S.rot=br;S.time=bt;syncUI();recompute(false);
+  S.pol=pol;S.rot=br;S.time=bt;
+  if(S.deep){setMask();calcMax();var tt=clamp(tDeep,-10,10),bst=-9,brr=0;for(var r3=0;r3<360;r3+=2){var c3=corrWith(r3,tt,1).c;if(c3>bst){bst=c3;brr=r3;}}
+    var pl=1;if(brr>90&&brr<270){pl=-1;brr=(brr+180)%360;}S.pol=pl;S.rot=brr;S.time=tt;setMask();
+    for(var j=0;j<BANDS.length;j++){if(!(S.full||(BANDS[j]>=S.lo/1.15&&BANDS[j]<=S.hi*1.15)))continue;var bb=bandBest(j);if(bandCorrAt(j,bb)-bandCorrAt(j,0)>0.02)S.bp[j]=bb;}}
+  syncUI();recompute(false);
 }
 function process(){
   var on=S.on,th=S.rot*Math.PI/180,d=S.time/1000,pol=S.pol;
   var BFr=new Float64Array(H+1),BFi=new Float64Array(H+1),RFr=new Float64Array(H+1),RFi=new Float64Array(H+1);
-  var BBr=new Float64Array(H+1),BBi=new Float64Array(H+1),XBr=new Float64Array(H+1),XBi=new Float64Array(H+1);
+  var BBr=new Float64Array(H+1),BBi=new Float64Array(H+1),XBr=new Float64Array(H+1),XBi=new Float64Array(H+1),Gr=new Float64Array(H+1),Gi=new Float64Array(H+1);
   for(var k=0;k<=H;k++){
     var m=Mk[k],gr=1,gi=0,rr=1,ri=0;
     if(on&&m>0){var ph=th+Ex[k]-2*Math.PI*k*DF*d;rr=pol*Math.cos(ph);ri=pol*Math.sin(ph);gr=(1-m)+m*rr;gi=m*ri;}
-    BFr[k]=Bs.re[k]*gr-Bs.im[k]*gi;BFi[k]=Bs.re[k]*gi+Bs.im[k]*gr;
+    Gr[k]=gr;Gi[k]=gi;BFr[k]=Bs.re[k]*gr-Bs.im[k]*gi;BFi[k]=Bs.re[k]*gi+Bs.im[k]*gr;
     RFr[k]=BRs.re[k]*gr-BRs.im[k]*gi;RFi[k]=BRs.re[k]*gi+BRs.im[k]*gr;
     var mr=on?m*rr:m,mi=on?m*ri:0;
     BBr[k]=Bs.re[k]*mr-Bs.im[k]*mi;BBi[k]=Bs.re[k]*mi+Bs.im[k]*mr;
@@ -365,20 +386,22 @@ function process(){
   var hop=64,nb=N/hop;D.bk=new Float64Array(nb);D.bb=new Float64Array(nb);D.bs=new Float64Array(nb);
   for(var i=0;i<nb;i++){var a=0,b=0,c=0;for(var j=0;j<hop;j++){var n2=i*hop+j;a=Math.max(a,Math.abs(kick[n2]));b=Math.max(b,Math.abs(D.bf[n2]));c=Math.max(c,Math.abs(D.sum[n2]));}D.bk[i]=a;D.bb[i]=b;D.bs[i]=c;}
   /* overall (band) */
-  var ov=on?corrWith(S.rot,S.time,S.pol):corrWith(0,0,1);D.corr=ov.c;D.gain=ov.g;
-  (function(){var cr=0,ci=0,w=0,cr0=0,ci0=0,w0=0;for(var k=kmin;k<=kmax;k++){var m=Mk[k];if(m<1e-3)continue;var xr=Xs.re[k],xi=Xs.im[k],xm=Math.sqrt(xr*xr+xi*xi);
-    var br=BFr[k],bi=BFi[k];cr+=m*(xr*br+xi*bi);ci+=m*(xi*br-xr*bi);w+=m*xm*Math.sqrt(br*br+bi*bi);
-    br=Bs.re[k];bi=Bs.im[k];cr0+=m*(xr*br+xi*bi);ci0+=m*(xi*br-xr*bi);w0+=m*xm*Math.sqrt(br*br+bi*bi);}
-    D.vec=w>0?{x:-ci/w,y:cr/w}:{x:0,y:0};D.vec0=w0>0?{x:-ci0/w0,y:cr0/w0}:{x:0,y:0};})();
+  var ov=on?corrWith(S.rot,S.time,S.pol):corrWith(0,0,1);D.corr=ov.c;D.gain=ov.g;D.cmax=Math.max(cmaxBase,Math.abs(D.corr),1e-6);D.gainBest=10*Math.log10(1+D.cmax);
+  (function(){var cr=0,ci=0,w=0,cr0=0,ci0=0,w0=0,hx=0,hy=0,hn=0;
+    BL.forEach(function(B){var a=0,b=0,ww=0;for(var k=kmin;k<=kmax;k++){var m=Mk[k];if(m<1e-3)continue;var xr=Xs.re[k],xi=Xs.im[k],xm=Math.sqrt(xr*xr+xi*xi),r0=B.re[k],i0=B.im[k],br=r0*Gr[k]-i0*Gi[k],bi=r0*Gi[k]+i0*Gr[k];
+        cr+=m*(xr*br+xi*bi);ci+=m*(xi*br-xr*bi);w+=m*xm*Math.sqrt(br*br+bi*bi);a+=m*(xr*r0+xi*i0);b+=m*(xi*r0-xr*i0);ww+=m*xm*Math.sqrt(r0*r0+i0*i0);}
+      cr0+=a;ci0+=b;w0+=ww;var mg=Math.sqrt(a*a+b*b);if(ww>0&&mg/ww>0.05){hx+=-b/mg;hy+=a/mg;hn++;}});
+    D.vec=w>0?{x:-ci/w,y:cr/w}:{x:0,y:0};D.vec0=w0>0?{x:-ci0/w0,y:cr0/w0}:{x:0,y:0};D.hitR=hn>1?Math.sqrt(hx*hx+hy*hy)/hn:1;})();
   /* per band, after and before */
   D.bc=[];D.bc0=[];D.be=[];var emax=-1e9;
   for(var bI=0;bI<BANDS.length;bI++){
     var lo=BANDS[bI]*Math.pow(2,-1/6),hi=BANDS[bI]*Math.pow(2,1/6),k0=Math.max(1,Math.ceil(lo/DF)),k1=Math.max(k0,Math.floor(hi/DF));
-    var w1=0,c1=0,w0=0,c0=0;
+    var w1=0,c1=0,s1=0,w0=0,c0=0,s0=0;
     for(var kk=k0;kk<=k1;kk++){var xr=Xs.re[kk],xi=Xs.im[kk],xm=Math.sqrt(xr*xr+xi*xi);
-      w1+=xm*Math.sqrt(BFr[kk]*BFr[kk]+BFi[kk]*BFi[kk]);c1+=xr*BFr[kk]+xi*BFi[kk];
-      w0+=xm*Math.sqrt(Bs.re[kk]*Bs.re[kk]+Bs.im[kk]*Bs.im[kk]);c0+=xr*Bs.re[kk]+xi*Bs.im[kk];}
-    D.bc.push(w1>0?c1/w1:0);D.bc0.push(w0>0?c0/w0:0);
+      for(var q2=0;q2<BL.length;q2++){var B2=BL[q2],r0=B2.re[kk],i0=B2.im[kk],fr=r0*Gr[kk]-i0*Gi[kk],fi=r0*Gi[kk]+i0*Gr[kk];
+        w1+=xm*Math.sqrt(fr*fr+fi*fi);c1+=xr*fr+xi*fi;s1+=xi*fr-xr*fi;w0+=xm*Math.sqrt(r0*r0+i0*i0);c0+=xr*r0+xi*i0;s0+=xi*r0-xr*i0;}}
+    var m1=w1>0?Math.sqrt(c1*c1+s1*s1)/w1:0,m0=w0>0?Math.sqrt(c0*c0+s0*s0)/w0:0;D.bcm=D.bcm||[];D.bcm[bI]=m1;
+    D.bc.push(m1>1e-6?clamp(c1/w1/m1,-1,1):0);D.bc0.push(m0>1e-6?clamp(c0/w0/m0,-1,1):0);
     var e=10*Math.log10(Math.max(1e-9,w0));D.be.push(e);emax=Math.max(emax,e);
   }
   for(var q=0;q<D.be.length;q++)D.be[q]-=emax;
@@ -400,8 +423,8 @@ function readCols(){var cs=getComputedStyle($('#page'));['page','panel','panel2'
 function hex2rgb(h){h=h.replace('#','');return [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
 function mix(a,b,t){return 'rgb('+Math.round(a[0]+(b[0]-a[0])*t)+','+Math.round(a[1]+(b[1]-a[1])*t)+','+Math.round(a[2]+(b[2]-a[2])*t)+')';}
 function corrColor(c){var bad=hex2rgb(COL.bad),warn=hex2rgb(COL.warn),good=hex2rgb(COL.good);
-  if(c<=-0.25)return mix(bad,bad,0);if(c<-0.15)return mix(bad,warn,(c+0.25)/0.1);if(c<0.4)return mix(warn,warn,0);if(c<0.5)return mix(warn,good,(c-0.4)/0.1);return mix(good,good,0);}
-function zoneOf(c){return c>=0.5?'good':(c>=-0.2?'warn':'bad');}
+  if(c<=-0.25)return mix(bad,bad,0);if(c<-0.15)return mix(bad,warn,(c+0.25)/0.1);if(c<0.6)return mix(warn,warn,0);if(c<0.7)return mix(warn,good,(c-0.6)/0.1);return mix(good,good,0);}
+function zoneOf(c){var a=rel(c);return a>=0.7?'good':(a>=-0.2?'warn':'bad');}
 function rgba(hex,a){var c=hex2rgb(hex);return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}
 function setup(cv){var w=parseInt(cv.style.width),h=parseInt(cv.style.height);if(cv.width!==w*2){cv.width=w*2;cv.height=h*2;}var g=cv.getContext('2d');g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,w,h);return {g:g,w:w,h:h};}
 function fmtDb(v){return (v<=-90)?'-inf':(v>=0?'+':'')+v.toFixed(1);}
@@ -475,10 +498,10 @@ function drawDial(){
   g.fillStyle=bz;g.beginPath();g.arc(cx,cy,R+11,0,6.3);g.fill();g.fillStyle=COL.panel;g.beginPath();g.arc(cx,cy,R+9,0,6.3);g.fill();
   for(var a=0;a<360;a+=10){var big=a%90===0,mid=a%30===0,r0=R+2.5,r1=R+(big?8.5:(mid?7:5)),sa=Math.sin(a*Math.PI/180),ca=Math.cos(a*Math.PI/180);g.strokeStyle=big?COL.text:(mid?COL.dim:COL.line);g.lineWidth=big?2:1;g.beginPath();g.moveTo(cx+sa*r0,cy-ca*r0);g.lineTo(cx+sa*r1,cy-ca*r1);g.stroke();}
   g.save();g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.clip();g.fillStyle=COL.disp;g.fillRect(cx-R,cy-R,2*R,2*R);
-  var gr=g.createLinearGradient(0,cy-R,0,cy+R);gr.addColorStop(0,rgba(COL.good,.55));gr.addColorStop(.25,rgba(COL.good,.14));gr.addColorStop(.2501,rgba(COL.warn,.11));gr.addColorStop(.6,rgba(COL.warn,.11));gr.addColorStop(.6001,rgba(COL.bad,.15));gr.addColorStop(1,rgba(COL.bad,.6));
+  var gr=g.createLinearGradient(0,cy-R,0,cy+R);gr.addColorStop(0,rgba(COL.good,.55));gr.addColorStop(.15,rgba(COL.good,.16));gr.addColorStop(.1501,rgba(COL.warn,.11));gr.addColorStop(.6,rgba(COL.warn,.11));gr.addColorStop(.6001,rgba(COL.bad,.15));gr.addColorStop(1,rgba(COL.bad,.6));
   g.fillStyle=gr;g.fillRect(cx-R,cy-R,2*R,2*R);
   var rg=g.createRadialGradient(cx,cy,R*0.2,cx,cy,R);rg.addColorStop(0,'rgba(0,0,0,0)');rg.addColorStop(1,'rgba(0,0,0,.42)');g.fillStyle=rg;g.fillRect(cx-R,cy-R,2*R,2*R);
-  g.setLineDash([2,5]);g.lineWidth=1;g.strokeStyle='rgba(255,255,255,.25)';[cy-R*0.5,cy+R*0.2].forEach(function(y){g.beginPath();g.moveTo(cx-R,y);g.lineTo(cx+R,y);g.stroke();});g.setLineDash([]);
+  g.setLineDash([2,5]);g.lineWidth=1;g.strokeStyle='rgba(255,255,255,.25)';[cy-R*0.7,cy+R*0.2].forEach(function(y){g.beginPath();g.moveTo(cx-R,y);g.lineTo(cx+R,y);g.stroke();});g.setLineDash([]);
   /* glass */
   var gl=g.createLinearGradient(0,cy-R,0,cy);gl.addColorStop(0,'rgba(255,255,255,.14)');gl.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gl;g.beginPath();g.ellipse(cx,cy-R*0.55,R*0.78,R*0.42,0,0,6.3);g.fill();
   g.restore();
@@ -486,14 +509,15 @@ function drawDial(){
   g.font='700 16px '+UIF;g.textAlign='center';
   g.save();if(z==='good'){g.shadowColor=COL.good;g.shadowBlur=12;}g.fillStyle=z==='good'?COL.good:rgba(COL.good,.5);g.fillText('IN PHASE',cx,cy-R-24);g.restore();
   g.save();if(z==='bad'){g.shadowColor=COL.bad;g.shadowBlur=12;}g.fillStyle=z==='bad'?COL.bad:rgba(COL.bad,.55);g.fillText('CANCELLING',cx,cy+R+26);g.restore();
-  var moved=Math.abs(D.vec.x-D.vec0.x)+Math.abs(D.vec.y-D.vec0.y)>0.03;
-  if(moved){var x0=cx+D.vec0.x*R,y0=cy-D.vec0.y*R;g.save();g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=1.5;g.setLineDash([3,4]);g.beginPath();g.moveTo(cx,cy);g.lineTo(x0,y0);g.stroke();g.restore();
+  var sv=function(v){var m=D.cmax||1,x=v.x/m,y=v.y/m,l=Math.sqrt(x*x+y*y);if(l>1){x/=l;y/=l;}return {x:x,y:y};},V=sv(D.vec),V0=sv(D.vec0);
+  var moved=Math.abs(V.x-V0.x)+Math.abs(V.y-V0.y)>0.03;
+  if(moved){var x0=cx+V0.x*R,y0=cy-V0.y*R;g.save();g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=1.5;g.setLineDash([3,4]);g.beginPath();g.moveTo(cx,cy);g.lineTo(x0,y0);g.stroke();g.restore();
     g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.arc(x0,y0,3.5,0,6.3);g.fill();g.font='500 13px '+UIF;g.textAlign=x0>cx?'left':'right';g.fillText('before',x0+(x0>cx?8:-8),y0);}
-  var x=cx+D.vec.x*R,y=cy-D.vec.y*R,dx=x-cx,dy=y-cy,len=Math.sqrt(dx*dx+dy*dy)||1,nx=-dy/len,ny=dx/len,w=5.5;
+  var x=cx+V.x*R,y=cy-V.y*R,dx=x-cx,dy=y-cy,len=Math.sqrt(dx*dx+dy*dy)||1,nx=-dy/len,ny=dx/len,w=5.5;
   g.save();g.shadowColor=zc;g.shadowBlur=16;g.fillStyle=zc;g.beginPath();g.moveTo(cx+nx*w,cy+ny*w);g.lineTo(x+nx*1.3,y+ny*1.3);g.lineTo(x-nx*1.3,y-ny*1.3);g.lineTo(cx-nx*w,cy-ny*w);g.closePath();g.fill();g.beginPath();g.arc(x,y,5,0,6.3);g.fill();g.restore();
   g.fillStyle='#fff';g.beginPath();g.arc(x,y,2,0,6.3);g.fill();
   var hb=g.createRadialGradient(cx-2,cy-2,1,cx,cy,9);hb.addColorStop(0,'#ffffff');hb.addColorStop(1,'#8d93a3');g.fillStyle=hb;g.beginPath();g.arc(cx,cy,8,0,6.3);g.fill();g.fillStyle=COL.panel;g.beginPath();g.arc(cx,cy,3,0,6.3);g.fill();
-  var txt='line-up '+(D.corr>=0?'+':'')+D.corr.toFixed(2);g.font='700 15px '+FONT;var tw=g.measureText(txt).width+22;rr(g,cx-tw/2,Hh-42,tw,24,12);g.fillStyle=COL.disp;g.fill();g.strokeStyle=rgba(zc,.6);g.lineWidth=1;g.stroke();
+  var pc=Math.round(rel(D.corr)*100),txt='aligned '+(pc>0?'+':'')+pc+'%';g.font='700 15px '+FONT;var tw=g.measureText(txt).width+22;rr(g,cx-tw/2,Hh-42,tw,24,12);g.fillStyle=COL.disp;g.fill();g.strokeStyle=rgba(zc,.6);g.lineWidth=1;g.stroke();
   g.textAlign='center';g.fillStyle=zc;g.fillText(txt,cx,Hh-29.5);
   g.font='500 13px '+UIF;g.fillStyle=COL.dim;g.fillText('up = they add up,  down = they cancel',cx,Hh-8);
 }
@@ -509,7 +533,7 @@ function drawClash(){
   [1,0.5,-0.2,-1].forEach(function(p){g.strokeStyle=COL.grid;g.lineWidth=1;g.beginPath();g.moveTo(L,Y(p));g.lineTo(L+pw,Y(p));g.stroke();});
   var cen=[];
   for(var i=0;i<BANDS.length;i++){var fl=BANDS[i]*Math.pow(2,-1/6),fh=BANDS[i]*Math.pow(2,1/6),x0=bandX(fl,L,pw)+3,x1=bandX(fh,L,pw)-3,bw=x1-x0;
-    var inBand=S.full||(BANDS[i]>=S.lo/1.15&&BANDS[i]<=S.hi*1.15),en=clamp((D.be[i]+36)/36,0.12,1),al=(inBand?1:0.35)*(0.45+0.55*en);
+    var inBand=S.full||(BANDS[i]>=S.lo/1.15&&BANDS[i]<=S.hi*1.15),en=clamp((D.be[i]+36)/36,0.12,1),al=(inBand?1:0.35)*(0.45+0.55*en)*clamp((D.bcm[i]||0)/0.3,0.3,1);
     var v=D.bc[i],col=corrColor(v),yv=Y(v),top=Math.min(yv,cy),hgt=Math.max(3,Math.abs(yv-cy));
     g.save();g.globalAlpha=al;if(inBand){g.shadowColor=col;g.shadowBlur=10;}rr(g,x0,top,bw,hgt,Math.min(4,hgt/2));g.fillStyle=col;g.fill();g.shadowBlur=0;
     var hg=g.createLinearGradient(x0,0,x0+bw,0);hg.addColorStop(0,'rgba(255,255,255,.28)');hg.addColorStop(.5,'rgba(255,255,255,0)');hg.addColorStop(1,'rgba(0,0,0,.25)');g.fillStyle=hg;g.fill();g.restore();
@@ -529,10 +553,11 @@ function renderAll(){drawTrace();drawDial();drawClash();}
 
 /* ===== verdict and UI refresh ===== */
 function refreshVerdict(){
-  var z=zoneOf(D.corr),v=$('#verdict'),t=$('#vtext');
-  v.className=z;v.textContent={good:'In phase',warn:'Careful',bad:'Cancelling'}[z];
-  t.textContent={good:'Kick and bass add up. Safe in mono.',warn:'Partly out of phase. The low end may thin out in mono.',bad:'They cancel each other. The low end drops in mono.'}[z];
-  var lv=$('#vlevel');lv.textContent='low end in mono: '+(D.gain>=0?'+':'')+D.gain.toFixed(1)+' dB';lv.style.color='var(--'+z+')';
+  var z=zoneOf(D.corr),v=$('#verdict'),t=$('#vtext'),none=D.cmax<0.15;
+  if(none){v.className='good';v.textContent='No clash';t.textContent='Kick and bass barely overlap in the low end here. Phase hardly matters.';}
+  else{v.className=z;v.textContent={good:'In phase',warn:'Careful',bad:'Cancelling'}[z];
+    t.textContent={good:'Kick and bass add up as well as they can. Safe in mono.',warn:'Partly out of phase. The low end can be fuller.',bad:'They cancel each other. The low end drops in mono.'}[z];}
+  var lv=$('#vlevel'),f1=function(x){return (x>=0?'+':'')+x.toFixed(1);};lv.textContent='low end: '+f1(D.gain)+' dB  (best '+f1(D.gainBest)+')';lv.style.color='var(--'+(none?'good':z)+')';
   $('#clashBand').textContent=S.full?'full band to 2 kHz':('band '+Math.round(S.lo)+' to '+Math.round(S.hi)+' Hz');
 }
 var sliders={};
@@ -552,7 +577,7 @@ function makeSlider(id,o){
 }
 function sweetSegs(kind){
   var n=kind==='rot'?360:201,ok=[],i,b;
-  for(i=0;i<n;i++)ok.push((kind==='rot'?corrWith(i,S.time,S.pol).c:corrWith(S.rot,-10+i*0.1,S.pol).c)>=0.5);
+  for(i=0;i<n;i++)ok.push((kind==='rot'?corrWith(i,S.time,S.pol).c:corrWith(S.rot,-10+i*0.1,S.pol).c)>=0.7*D.cmax);
   b=kind==='rot'?Math.round(D.bestRot)%360:clamp(Math.round((D.bestTime+10)/0.1),0,n-1);
   if(!ok[b])return [];
   if(kind==='rot'){var l=b,r=b,c=0;while(c<360&&ok[(l-1+360)%360]){l--;c++;}if(c>=359)return [[0,1]];while(ok[(r+1)%360]&&r-l<359)r++;
@@ -565,7 +590,7 @@ function paintSweet(api,segs){api.sw=api.sw||[];var th=api.el.querySelector('.th
     e.style.borderLeftWidth=(segs.length>1&&sg[0]===0)?'0':'2px';e.style.borderRightWidth=(segs.length>1&&sg[1]===1)?'0':'2px';}
 }
 function paintTrack(api,vals,min,max,bestVal){
-  var n=vals.length,stops=[];for(var i=0;i<n;i++){stops.push(corrColor(vals[i])+' '+(i/(n-1)*100).toFixed(1)+'%');}
+  var n=vals.length,stops=[];for(var i=0;i<n;i++){stops.push(corrColor(rel(vals[i]))+' '+(i/(n-1)*100).toFixed(1)+'%');}
   api.trk.style.background='linear-gradient(90deg,'+stops.join(',')+')';
   api.best.style.left=((bestVal-min)/(max-min)*100)+'%';
 }
@@ -583,9 +608,10 @@ function syncUI(){
   $('#fxFull').className='chip'+(S.full?' on':'');
 }
 function refreshExtras(){
-  var unstable=S.sig==='free'&&hits.length>=3&&hitSpread()<0.8,v=$('#verdict'),t=$('#vtext'),h=$('#srcHint');
+  var unstable=S.sig==='free'&&D.hitR<0.8,v=$('#verdict'),t=$('#vtext'),h=$('#srcHint');
   if(unstable){v.className='warn';v.textContent='Unstable';t.textContent='The bass phase jumps from hit to hit. Turn on retrigger in the bass synth, or bounce the bass to audio.';t.style.fontSize='15px';}
   else t.style.fontSize='';
+  $('#hitLab').textContent=basses?('low end only, kick hit '+(hitI+1)+' of 4; verdict covers all 4'):'low end only, after each kick hit';
   var sf=sourceFix();
   if(unstable)h.textContent='At the source: turn on retrigger (phase reset) first';
   else if(!sf)h.textContent='';
@@ -595,7 +621,7 @@ function refreshExtras(){
 }
 function recompute(sigChanged,noAudio){
   if(sigChanged)genSignals();
-  setMask();process();
+  setMask();calcMax();process();
   paintTrack(slRot,D.rotC,0,360,D.bestRot);paintTrack(slTime,D.timeC,-10,10,D.bestTime);
   paintSweet(slRot,sweetSegs('rot'));paintSweet(slTime,sweetSegs('time'));
   refreshVerdict();refreshExtras();dirty=true;if(!noAudio)scheduleAudio();
@@ -757,6 +783,7 @@ $('#fxPol').addEventListener('click',function(){S.pol=-S.pol;syncUI();recompute(
 $('#fxFull').addEventListener('click',function(){S.full=!S.full;syncUI();recompute(false);});
 $('#fxReset').addEventListener('click',function(){S.bp=S.bp.map(function(){return 0;});S.pol=1;S.rot=0;S.time=0;S.lo=20;S.hi=200;S.full=false;syncUI();recompute(false);});
 $('#fxAuto').addEventListener('click',autoAlign);
+$('#fxDeep').addEventListener('click',function(){S.deep=!S.deep;this.className='chip mon'+(S.deep?' on':'');autoAlign();});
 $('#monMono').addEventListener('click',function(){S.mono=!S.mono;this.className='chip mon'+(S.mono?' on':'');scheduleAudio();});
 $('#monLow').addEventListener('click',function(){S.low=!S.low;this.className='chip mon'+(S.low?' on':'');scheduleAudio();});
 $('#snapRot').addEventListener('click',function(){slRot.set(D.bestRot);});
@@ -788,14 +815,14 @@ document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='I
   cv.addEventListener('lostpointercapture',function(){drag=null;bdrag=-1;});window.addEventListener('pointerup',function(){drag=null;bdrag=-1;});
   cv.addEventListener('pointermove',function(e){if(!(e.buttons&1)){drag=null;bdrag=-1;}var p=loc(e),g=D.clashGeom;if(!g)return;
     if(drag){var f=freqAt(p.x);if(drag==='lo')setBand(f,S.hi);else setBand(S.lo,f);return;}
-    if(bdrag>=0){var t=clamp((g.cy-p.y)/(g.ph/2),-1,1);S.bp[bdrag]=bandSolve(bdrag,t,S.bp[bdrag]);recompute(false);return;}
+    if(bdrag>=0){var t=clamp((g.cy-p.y)/(g.ph/2),-1,1);S.bp[bdrag]=bandSolve(bdrag,t*(D.bcm[bdrag]||1),S.bp[bdrag]);recompute(false);return;}
     if(!S.full&&(Math.abs(p.x-g.xl)<8||Math.abs(p.x-g.xh)<8))cv.style.cursor='ew-resize';else cv.style.cursor=active(bandAt(p.x))?'ns-resize':'default';});
   cv.addEventListener('pointerup',function(){drag=null;bdrag=-1;});cv.addEventListener('pointercancel',function(){drag=null;bdrag=-1;});
   cv.addEventListener('dblclick',function(e){var p=loc(e),i=bandAt(p.x);if(active(i)){S.bp[i]=bandBest(i);recompute(false);}});
   cv.setAttribute('data-tip','One bar per third-octave: how well kick and bass line up there (up and green = good, down and pink = cancelling). Ring = before. Drag a bar up or down to turn the phase of just that band, double click a bar for its best setting. A dot under the label means that band is turned. Drag the dashed lines to choose the range the fixer works on.');
 })();
-$('#cvDial').setAttribute('data-tip','One needle for the chosen band. It points up when kick and bass add up, down when they cancel. Phase rotation turns the needle. A short needle means the two drift against each other, so no single phase setting lines them up fully; try time shift or the bars per band. The dashed needle shows where it was before the fixer.');
-$('#pVerd').setAttribute('data-tip','The verdict for the chosen band. Green: kick and bass add up. Yellow: partly out of phase. Pink: they cancel. The dB number is how much louder or quieter the low end gets when the two play together, compared with no interaction.');
+$('#cvDial').setAttribute('data-tip','One needle for the chosen band. Straight up = aligned 100%, the best this kick and bass can do; down = they cancel as much as they can. Phase rotation turns the needle. A short needle means the two drift against each other, so no single phase setting lines them up fully; try time shift or the bars per band. The dashed needle shows where it was before the fixer.');
+$('#pVerd').setAttribute('data-tip','The verdict for the chosen band. Green: kick and bass add up as well as they can. Yellow: partly out of phase. Pink: they cancel. The dB number is how much louder or quieter the low end gets when the two play together; best is the most this kick and bass can reach with one phase and time setting. Basslines whose notes differ from the kick pitch overlap less, so their best is smaller.');
 
 /* ===== boot ===== */
 function boot(){
