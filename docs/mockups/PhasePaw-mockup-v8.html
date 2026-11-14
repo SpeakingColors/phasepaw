@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhasePaw v6 design mockup, Studio 87</title>
+<title>PhasePaw v8 design mockup, Studio 87</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root,#page[data-skin="B"]{--page:#0b0b0d;--panel:#14151a;--panel2:#1e2028;--line:#343746;--disp:#06080a;--grid:#262b36;--text:#f4f5f7;--dim:#c3c7d2;--title:#E1CBF4;--selbg:#241238;--selbd:#CD92FE;--seltx:#E1CBF4;--kick:#FF1383;--bass:#02EBBA;--sum:#FFD100;--good:#02EBBA;--warn:#FFD100;--bad:#FF1383}
@@ -87,7 +87,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 #verdict.good{box-shadow:0 0 24px rgba(2,235,186,.22),inset 0 0 22px rgba(2,235,186,.1)}
 #verdict.warn{box-shadow:0 0 24px rgba(255,209,0,.2),inset 0 0 22px rgba(255,209,0,.1)}
 #verdict.bad{box-shadow:0 0 24px rgba(255,19,131,.25),inset 0 0 22px rgba(255,19,131,.12)}
-#vtext{font-size:17px;color:var(--dim)}
+#vtext{font-size:17px;color:var(--dim);min-height:40px}
 #vlevel{font-size:15px}
 #demo{opacity:.92}
 #tip{border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
@@ -118,6 +118,11 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 #demo .btn,#demo select{height:23px!important;font-size:14px;border-radius:6px}
 #demo .sl{height:22px}#demo .sl .trk{top:5px;height:10px}#demo .sl .thumb{height:20px;width:14px}#demo .sl .thumb:after{left:6px;top:5px;height:10px}
 #verdict{font-size:33px}
+.sl .sweet{position:absolute;top:4px;height:20px;box-sizing:border-box;border:2px solid #fff;border-radius:10px;box-shadow:0 0 9px var(--good),inset 0 0 6px rgba(255,255,255,.35);pointer-events:none;text-decoration:none}
+.chip.mon{display:inline-flex;align-items:center;gap:7px;height:26px;font-size:14px;padding:0 11px;color:var(--dim)}
+.chip.mon .led{width:9px;height:9px;border-radius:50%;background:#2a2d36;box-shadow:inset 0 1px 2px rgba(0,0,0,.9)}
+.chip.mon.on{color:#04130f;background:linear-gradient(180deg,#7df7da,#02c79d);border-color:#b6ffee;box-shadow:0 0 14px rgba(2,235,186,.55),inset 0 1px 0 rgba(255,255,255,.5)}
+.chip.mon.on .led{background:#fff;box-shadow:0 0 6px #fff}
 </style>
 </head>
 <body>
@@ -144,19 +149,20 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
   </div>
 
   <div class="panel" id="pTrace" style="left:52px;top:56px;width:720px;height:296px">
-    <div class="ph"><h2>Kick and bass</h2><span class="sp"></span><span class="hint">low end only, after each kick hit</span></div>
+    <div class="ph"><h2>Kick and bass</h2><span class="sp"></span><span class="hint" id="hitLab">low end only, after each kick hit</span></div>
     <canvas id="cvTrace" style="width:704px;height:252px;margin:5px 7px 0"></canvas>
   </div>
 
-  <div class="panel" id="pVerd" style="left:784px;top:56px;width:284px;height:152px;padding:10px;display:flex;flex-direction:column;gap:6px">
+  <div class="panel" id="pVerd" style="left:784px;top:56px;width:284px;height:186px;padding:10px;display:flex;flex-direction:column;gap:6px">
     <div id="verdict">CANCELLING</div>
     <div id="vtext">They cancel each other.</div>
     <div id="vlevel" class="mono">low end in mono: -3.9 dB</div>
+    <div class="row" style="gap:8px;justify-content:center;margin-top:auto"><span class="lab" style="font-size:13px">Listen</span><button class="chip mon" id="monMono" data-tip="Mono: hear kick and bass folded to mono, the way a mono speaker or a club system plays them. Lit and mint = on. In the plugin, solo the bass track while it is on and switch it off before you export. In this demo, off plays the bass slightly wide in stereo and on folds everything to mono."><i class="led"></i>Mono</button><button class="chip mon" id="monLow" data-tip="Low end: hear only what is inside the chosen band (20 to 200 Hz by default), without the kick click and the bass harmonics. That is the part where kick and bass clash. Best on a sub or good headphones; small speakers play almost nothing. Lit and mint = on. Switch it off before you export."><i class="led"></i>Low end</button></div>
   </div>
 
-  <div class="panel" id="pDial" style="left:784px;top:216px;width:284px;height:334px">
+  <div class="panel" id="pDial" style="left:784px;top:250px;width:284px;height:300px">
     <div class="ph"><h2>Phase needle</h2></div>
-    <canvas id="cvDial" style="width:268px;height:288px;margin:5px 7px 0"></canvas>
+    <canvas id="cvDial" style="width:268px;height:256px;margin:5px 7px 0"></canvas>
   </div>
 
   <div class="panel" id="pClash" style="left:52px;top:360px;width:720px;height:190px">
@@ -166,7 +172,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
   </div>
 
   <div class="panel" id="pFix" style="left:52px;top:558px;width:1016px;height:122px">
-    <div class="ph"><h2>Fixer (acts on the bass)</h2><span class="sp"></span>
+    <div class="ph"><h2>Fixer (acts on the bass)</h2><span class="hint" id="srcHint" data-tip="The same fix done before the plugin, so you can switch the fixer off and add no latency. In a synth: move the oscillator start phase by this many degrees (retrigger must be on). With an audio clip: nudge it by this many ms. It matches the fixer at the bass note itself; bands you turned by hand are not included." style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--seltx);margin-left:8px"></span>
       <button class="btn" id="fxReset" data-tip="Put the fixer back to its start values. Key: R." style="height:24px;padding:0 10px">Reset</button></div>
     <div style="display:flex;gap:20px;padding:4px 14px 0;align-items:flex-start">
       <button class="btn primary" id="fxAuto" data-tip="Finds the best fix in one click: tries every time shift and phase rotation together, then flips the polarity instead when that needs less rotation. It clears any bands you turned by hand. Key: A." style="height:66px;width:150px;flex:none"><svg viewBox="0 0 24 24" width="24" height="24" fill="#1d0a2b" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.6" ry="4.6"/><circle cx="5.3" cy="10.6" r="2.3"/><circle cx="9.4" cy="6.4" r="2.5"/><circle cx="14.6" cy="6.4" r="2.5"/><circle cx="18.7" cy="10.6" r="2.3"/></svg><span>AUTO ALIGN</span></button>
@@ -176,11 +182,11 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
       </div>
       <div style="flex:1">
         <div class="row" style="justify-content:space-between"><span class="lab">Phase rotation</span><span class="val" id="vRot">0 deg</span></div>
-        <div class="row"><div class="sl" id="slRot" tabindex="0" data-tip="Turns the phase of the bass inside the chosen band, 0 to 360 degrees, without changing its level. The track colour shows the result at every position: mint = in phase, yellow = careful, pink = cancelling. The arrow marks the best position. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">0</span><span class="tk" style="left:25.0%">90</span><span class="tk" style="left:50.0%">180</span><span class="tk" style="left:75.0%">270</span><span class="tk" style="left:100.0%">360</span><b class="best" id="bestRot"></b><i class="thumb"></i></div><button class="btn" id="snapRot" data-tip="Jump to the best rotation for the current settings." style="height:26px;padding:0 10px">Best</button></div>
+        <div class="row"><div class="sl" id="slRot" tabindex="0" data-tip="Turns the phase of the bass inside the chosen band, 0 to 360 degrees, without changing its level. The track colour shows the result at every position: mint = in phase, yellow = careful, pink = cancelling. The arrow marks the best position. The white outline is the sweet spot: anywhere inside it the verdict stays green, so pick the spot that sounds best. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">0</span><span class="tk" style="left:25.0%">90</span><span class="tk" style="left:50.0%">180</span><span class="tk" style="left:75.0%">270</span><span class="tk" style="left:100.0%">360</span><b class="best" id="bestRot"></b><i class="thumb"></i></div><button class="btn" id="snapRot" data-tip="Jump to the best rotation for the current settings." style="height:26px;padding:0 10px">Best</button></div>
       </div>
       <div style="flex:1">
         <div class="row" style="justify-content:space-between"><span class="lab">Time shift</span><span class="val" id="vTime">0.00 ms</span></div>
-        <div class="row"><div class="sl" id="slTime" tabindex="0" data-tip="Moves the bass earlier (left) or later (right) by up to 10 ms. Same colour cues as the rotation track. You can also drag the bass in the Kick and bass view. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">-10</span><span class="tk" style="left:25.0%">-5</span><span class="tk" style="left:50.0%">0</span><span class="tk" style="left:75.0%">+5</span><span class="tk" style="left:100.0%">+10 ms</span><b class="best" id="bestTime"></b><i class="thumb"></i></div><button class="btn" id="snapTime" data-tip="Jump to the best time shift for the current settings." style="height:26px;padding:0 10px">Best</button></div>
+        <div class="row"><div class="sl" id="slTime" tabindex="0" data-tip="Moves the bass earlier (left) or later (right) by up to 10 ms. Same colour cues and sweet spot outline as the rotation track. You can also drag the bass in the Kick and bass view. Double click to reset."><div class="trk"></div><span class="tk" style="left:0.0%">-10</span><span class="tk" style="left:25.0%">-5</span><span class="tk" style="left:50.0%">0</span><span class="tk" style="left:75.0%">+5</span><span class="tk" style="left:100.0%">+10 ms</span><b class="best" id="bestTime"></b><i class="thumb"></i></div><button class="btn" id="snapTime" data-tip="Jump to the best time shift for the current settings." style="height:26px;padding:0 10px">Best</button></div>
       </div>
     </div>
   </div>
@@ -189,7 +195,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
   <div class="row" id="demo" style="position:absolute;left:52px;top:687px;width:770px;height:29px;gap:12px">
     <button class="btn" id="bPlay" data-tip="Play or stop the demo loop (Space). The sound restarts when you move a control; that is a limit of this preview page." style="height:28px;padding:0 14px">&#9654; Play</button>
     <span class="lab" style="color:var(--dim);font-size:14px">Demo only</span>
-    <select id="selSig" style="height:28px;width:230px" data-tip="Demo kick and bass made inside this page. In the plugin the kick comes in through the sidechain and the bass is the track."><option value="sub">Kick + sub on the hit</option><option value="roll">Rolling bass, gap on the beat</option><option value="long">Long bass, kick 6% detuned</option></select>
+    <select id="selSig" style="height:28px;width:230px" data-tip="Demo kick and bass made inside this page. In the plugin the kick comes in through the sidechain and the bass is the track."><option value="sub">Bass on the kick (sub)</option><option value="off">Offbeat bass</option><option value="offoct">Offbeat bass, low and high octave</option><option value="rolloct">Rolling bass, low high low</option><option value="roll">Rolling bass, one note</option><option value="offmel">Offbeat bassline, note changes</option><option value="rollmel">Rolling melodic bassline</option><option value="onmel">Sustained bass, note changes</option><option value="house">Syncopated house bass</option><option value="short">Short punchy kick + long sub</option><option value="a1">Kick + sub in A (55 Hz)</option><option value="oct">Bass one octave above the kick</option><option value="long">Long bass, kick 6% detuned</option><option value="free">Free-running bass (no retrigger)</option></select>
     <span class="lab" style="color:var(--dim);font-size:15px">Bass start</span>
     <div class="sl" id="slBph" tabindex="0" style="max-width:160px;min-width:120px" data-tip="Where the demo bass starts in its cycle, 0 to 360 degrees. Move it to make the demo clash or line up. Double click to reset."><div class="trk"></div><i class="thumb"></i></div>
     <span class="val" id="vBph" style="width:60px">150 deg</span>
@@ -224,7 +230,7 @@ var NOTES=[['E1',41.20],['F1',43.65],['F#1',46.25],['G1',49.00],['G#1',51.91],['
 
 /* ===== state ===== */
 var DEF={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false};
-var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-9,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],win:250,show:{kick:1,b0:1,bf:1,sum:1}};
+var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:false,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
 var SET={theme:'B',bubbles:true,power:false};
 try{var sv=JSON.parse(localStorage.getItem('phasepaw.settings.v1')||'{}'); if(sv.theme&&'ABC'.indexOf(sv.theme)>=0)SET.theme=sv.theme; if(typeof sv.bubbles==='boolean')SET.bubbles=sv.bubbles; if(typeof sv.power==='boolean')SET.power=sv.power;}catch(e){}
 function saveSettings(){try{localStorage.setItem('phasepaw.settings.v1',JSON.stringify(SET));}catch(e){}}
@@ -249,10 +255,10 @@ function irfft(sr,si){var re=new Float64Array(N),im=new Float64Array(N);
 
 /* ===== demo signals ===== */
 var kick,bass0,Xs,Bs,BRs;
-function genKick(f1){
+function genKick(f1,sh){
   var k=new Float64Array(N),ph=0,mx=0,seed=12345,prev=0;
   for(var n=0;n<N;n++){var t=n/SR,f=f1+(190-f1)*Math.exp(-t/0.024)+1100*Math.exp(-t/0.004);ph+=2*Math.PI*f/SR;
-    var env=(0.5+0.5*Math.exp(-t/0.09))*Math.exp(-t/0.3)*Math.min(1,t/0.0008),tail=Math.min(1,(T-t)/0.02);
+    var env=(sh?Math.exp(-t/0.055):(0.5+0.5*Math.exp(-t/0.09))*Math.exp(-t/0.3))*Math.min(1,t/0.0008),tail=Math.min(1,(T-t)/0.02);
     var v=Math.tanh(2.4*Math.sin(ph)*env)/Math.tanh(2.4);
     seed=(seed*1103515245+12345)&0x7fffffff;var nz=seed/0x3fffffff-1,hp=nz-prev;prev=nz;
     v+=0.22*hp*Math.exp(-t/0.004)+0.10*Math.sin(2*Math.PI*3200*t)*Math.exp(-t/0.0025);
@@ -260,28 +266,46 @@ function genKick(f1){
   for(var m=0;m<N;m++)k[m]*=0.9/mx;return k;
 }
 function noteEnv(t,len,att,rel){if(t<0||t>len+rel)return 0;var a=Math.min(1,t/att);var r=t<len?1:Math.max(0,1-(t-len)/rel);return a*r;}
-function genBass(f,phDeg,sig){
-  var b=new Float64Array(N),phi=phDeg*Math.PI/180,mx=0,notes,amps=[],nh=Math.min(110,Math.floor(4800/f));
-  for(var h=1;h<=nh;h++){var fr=h*f;amps.push((h===1?1.7:1/Math.pow(h,0.92))/(1+Math.pow(fr/2600,2)));}
-  if(sig==='sub')notes=[[0,0.26]];
-  else if(sig==='roll')notes=[[0.25*T,0.07],[0.5*T,0.07],[0.75*T,0.07]];
-  else notes=[[0,0.32]];
-  for(var n=0;n<N;n++){var t=n/SR,v=0;
-    for(var q=0;q<notes.length;q++){var lt=t-notes[q][0];if(lt<0)continue;
-      var e=noteEnv(lt,notes[q][1],0.003,sig==='roll'?0.015:0.04);if(!e)continue;
-      var w=2*Math.PI*f*lt+phi,s1=Math.sin(w),c1=Math.cos(w),sp=0,sc=s1,cp=1,cc=c1,s=0;
-      for(var h2=0;h2<nh;h2++){s+=amps[h2]*sc;var ns2=2*c1*sc-sp;sp=sc;sc=ns2;}
-      v+=e*s;}
-    b[n]=v;mx=Math.max(mx,Math.abs(v));}
-  for(var m=0;m<N;m++)b[m]*=0.75/mx;return b;
+function genNotes(f0,phDeg,notes){
+  var b=new Float64Array(N),phi=phDeg*Math.PI/180;
+  notes.forEach(function(nt){var f=f0*Math.pow(2,(nt[2]||0)/12),nh=Math.min(110,Math.floor(4800/f)),amps=[],rel=nt[3]||0.04;
+    for(var h=1;h<=nh;h++){amps.push((h===1?1.7:1/Math.pow(h,0.92))/(1+Math.pow(h*f/2600,2)));}
+    var n0=Math.max(0,Math.floor(nt[0]*SR)),n1=Math.min(N,Math.ceil((nt[0]+nt[1]+rel)*SR));
+    for(var n=n0;n<n1;n++){var lt=n/SR-nt[0];if(lt<0)continue;var e=noteEnv(lt,nt[1],0.003,rel);if(!e)continue;
+      var w=2*Math.PI*f*lt+phi,c1=Math.cos(w),sp=0,sc=Math.sin(w),sm=0;
+      for(var h2=0;h2<nh;h2++){sm+=amps[h2]*sc;var ns2=2*c1*sc-sp;sp=sc;sc=ns2;}
+      b[n]+=e*sm;}});
+  return b;
 }
+/* demo patterns: one list of notes per beat; a note is [start s, length s, semitones, release s] */
+function patterns(){var e8=0.5*T,s=0.25*T,r=0.015;
+  function off(n){return [[e8,0.13,n]];}
+  function roll(a,b,c){return [[s,0.07,a,r],[2*s,0.07,b,r],[3*s,0.07,c,r]];}
+  return {sub:[[[0,0.26,0]]],long:[[[0,0.32,0]]],off:[off(0)],roll:[roll(0,0,0)],
+    offoct:[off(0),off(12),off(0),off(12)],rolloct:[roll(0,12,0)],
+    offmel:[off(0),off(0),off(3),off(5)],rollmel:[roll(0,0,0),roll(0,0,3),roll(5,5,5),roll(3,3,-2)],
+    onmel:[[[0,0.3,0]],[[0,0.3,0]],[[0,0.3,-2]],[[0,0.3,3]]],
+    house:[[[0,0.1,0],[3*s,0.06,0,r]],[[e8,0.1,0]],[[0,0.1,3],[3*s,0.06,3,r]],[[e8,0.1,5]]]};}
+var basses=null,hitI=0,hits=[],BL=[];
 function genSignals(){
-  kick=genKick(NOTES[S.note][1]*(S.sig==='long'?1.06:1));bass0=genBass(NOTES[S.note][1],S.bph,S.sig);
-  Xs=rfft(kick);Bs=rfft(bass0);
-  var d=S.wid/1000,re=new Float64Array(H+1),im=new Float64Array(H+1);
-  for(var k=0;k<=H;k++){var a=-2*Math.PI*k*DF*d,c=Math.cos(a),s=Math.sin(a);re[k]=Bs.re[k]*c-Bs.im[k]*s;im[k]=Bs.re[k]*s+Bs.im[k]*c;}
-  BRs={re:re,im:im};
+  var sg=S.sig,f=(sg==='a1')?55:NOTES[S.note][1],P=patterns(),pat=P[{short:'sub',oct:'sub',a1:'sub',free:'sub'}[sg]||sg]||P.sub;
+  kick=genKick(f*(sg==='long'?1.06:1),sg==='short');
+  var bf=(sg==='oct')?f*2:f,raw;
+  if(sg==='free')raw=[0,100,215,305].map(function(o){return genNotes(bf,(S.bph+o)%360,pat[0]);});
+  else raw=pat.map(function(nts){return genNotes(bf,S.bph,nts);});
+  var mx=1e-9;raw.forEach(function(b){for(var n=0;n<N;n++)mx=Math.max(mx,Math.abs(b[n]));});raw.forEach(function(b){for(var n=0;n<N;n++)b[n]*=0.75/mx;});
+  basses=raw.length>1?raw:null;BL=raw.map(function(b){return rfft(b);});hitI=0;bass0=raw[0];
+  Xs=rfft(kick);Bs=BL[0];BRs=Bs;
 }
+function setHit(i){if(!basses)return;hitI=i;bass0=basses[i];Bs=BL[i];BRs=Bs;process();refreshVerdict();refreshExtras();dirty=true;}
+function fixArr(arr){var F=rfft(arr),r=new Float64Array(H+1),im=new Float64Array(H+1),th=S.rot*Math.PI/180,d=S.time/1000;
+  for(var k=0;k<=H;k++){var m=Mk[k],gr=1,gi=0;if(m>0){var ph=th+Ex[k]-2*Math.PI*k*DF*d;gr=(1-m)+m*S.pol*Math.cos(ph);gi=m*S.pol*Math.sin(ph);}r[k]=F.re[k]*gr-F.im[k]*gi;im[k]=F.re[k]*gi+F.im[k]*gr;}return irfft(r,im);}
+/* bass note inside the band, and the same fix done before the plugin */
+function bassNote(){var mg=function(k){var a=0;for(var q=0;q<BL.length;q++){var B=BL[q];a+=Math.sqrt(B.re[k]*B.re[k]+B.im[k]*B.im[k]);}return a;},best=0,bk=0;
+  for(var k=kmin+1;k<kmax;k++){if(Mk[k]<0.5)continue;var a=mg(k);if(a>best){best=a;bk=k;}}
+  if(!bk)return 0;var a0=mg(bk-1),a1=mg(bk),a2=mg(bk+1),den=a0-2*a1+a2,off=den?0.5*(a0-a2)/den:0;return (bk+clamp(off,-0.5,0.5))*DF;}
+function sourceFix(){var f0=bassNote();if(!f0)return null;var psi=S.on?(S.rot+(S.pol<0?180:0)-360*f0*S.time/1000):0;psi=((psi%360)+540)%360-180;
+  return {f:f0,deg:psi,ms:-psi/(360*f0)*1000,bands:S.on&&S.bp.some(function(v){return Math.abs(v)>0.5;})};}
 
 /* ===== analysis ===== */
 var Mk=new Float64Array(H+1),kmin=1,kmax=H;
@@ -295,12 +319,10 @@ function setMask(){setEx();
     Mk[k]=m;}
 }
 function corrWith(rotDeg,timeMs,pol){
-  var th=rotDeg*Math.PI/180,d=timeMs/1000,w=0,c=0;
+  var th=rotDeg*Math.PI/180,d=timeMs/1000,w=0,c=0,nb=BL.length;
   for(var k=kmin;k<=kmax;k++){var m=Mk[k];if(m<1e-3)continue;
-    var ph=th+Ex[k]-2*Math.PI*k*DF*d,rr=pol*Math.cos(ph),ri=pol*Math.sin(ph);
-    var gr=(1-m)+m*rr,gi=m*ri,br=Bs.re[k]*gr-Bs.im[k]*gi,bi=Bs.re[k]*gi+Bs.im[k]*gr;
-    var xr=Xs.re[k],xi=Xs.im[k];
-    w+=m*Math.sqrt((xr*xr+xi*xi)*(br*br+bi*bi));c+=m*(xr*br+xi*bi);}
+    var ph=th+Ex[k]-2*Math.PI*k*DF*d,rr=pol*Math.cos(ph),ri=pol*Math.sin(ph),gr=(1-m)+m*rr,gi=m*ri,xr=Xs.re[k],xi=Xs.im[k],x2=xr*xr+xi*xi;
+    for(var q=0;q<nb;q++){var B=BL[q],r0=B.re[k],i0=B.im[k],br=r0*gr-i0*gi,bi=r0*gi+i0*gr;w+=m*Math.sqrt(x2*(br*br+bi*bi));c+=m*(xr*br+xi*bi);}}
   var cc=w>0?c/w:0;return {c:cc,g:10*Math.log10(Math.max(1e-4,1+cc))};
 }
 var D={};
@@ -308,8 +330,8 @@ function bandCorrAt(i,rDeg){
   var lo=BANDS[i]*Math.pow(2,-1/6),hi=BANDS[i]*Math.pow(2,1/6),k0=Math.max(1,Math.ceil(lo/DF)),k1=Math.max(k0,Math.floor(hi/DF));
   var th=(S.rot+rDeg)*Math.PI/180,d=S.time/1000,w=0,c=0;
   for(var k=k0;k<=k1;k++){var m=Mk[k];var gr=1,gi=0;if(m>0){var ph=th-2*Math.PI*k*DF*d,rr=S.pol*Math.cos(ph),ri=S.pol*Math.sin(ph);gr=(1-m)+m*rr;gi=m*ri;}
-    var br=Bs.re[k]*gr-Bs.im[k]*gi,bi=Bs.re[k]*gi+Bs.im[k]*gr,xr=Xs.re[k],xi=Xs.im[k];
-    w+=Math.sqrt((xr*xr+xi*xi)*(br*br+bi*bi));c+=xr*br+xi*bi;}
+    var xr=Xs.re[k],xi=Xs.im[k],x2=xr*xr+xi*xi;
+    for(var q=0;q<BL.length;q++){var B=BL[q],br=B.re[k]*gr-B.im[k]*gi,bi=B.re[k]*gi+B.im[k]*gr;w+=Math.sqrt(x2*(br*br+bi*bi));c+=xr*br+xi*bi;}}
   return w>0?c/w:0;
 }
 function bandSolve(i,target,cur){var best=0,bd=9;for(var r=0;r<360;r+=3){var d=Math.abs(bandCorrAt(i,r)-target)+0.0008*Math.abs(((r-cur+540)%360)-180)/180;if(d<bd){bd=d;best=r;}}return best;}
@@ -328,11 +350,11 @@ function autoAlign(){
 function process(){
   var on=S.on,th=S.rot*Math.PI/180,d=S.time/1000,pol=S.pol;
   var BFr=new Float64Array(H+1),BFi=new Float64Array(H+1),RFr=new Float64Array(H+1),RFi=new Float64Array(H+1);
-  var BBr=new Float64Array(H+1),BBi=new Float64Array(H+1),XBr=new Float64Array(H+1),XBi=new Float64Array(H+1);
+  var BBr=new Float64Array(H+1),BBi=new Float64Array(H+1),XBr=new Float64Array(H+1),XBi=new Float64Array(H+1),Gr=new Float64Array(H+1),Gi=new Float64Array(H+1);
   for(var k=0;k<=H;k++){
     var m=Mk[k],gr=1,gi=0,rr=1,ri=0;
     if(on&&m>0){var ph=th+Ex[k]-2*Math.PI*k*DF*d;rr=pol*Math.cos(ph);ri=pol*Math.sin(ph);gr=(1-m)+m*rr;gi=m*ri;}
-    BFr[k]=Bs.re[k]*gr-Bs.im[k]*gi;BFi[k]=Bs.re[k]*gi+Bs.im[k]*gr;
+    Gr[k]=gr;Gi[k]=gi;BFr[k]=Bs.re[k]*gr-Bs.im[k]*gi;BFi[k]=Bs.re[k]*gi+Bs.im[k]*gr;
     RFr[k]=BRs.re[k]*gr-BRs.im[k]*gi;RFi[k]=BRs.re[k]*gi+BRs.im[k]*gr;
     var mr=on?m*rr:m,mi=on?m*ri:0;
     BBr[k]=Bs.re[k]*mr-Bs.im[k]*mi;BBi[k]=Bs.re[k]*mi+Bs.im[k]*mr;
@@ -347,18 +369,19 @@ function process(){
   for(var i=0;i<nb;i++){var a=0,b=0,c=0;for(var j=0;j<hop;j++){var n2=i*hop+j;a=Math.max(a,Math.abs(kick[n2]));b=Math.max(b,Math.abs(D.bf[n2]));c=Math.max(c,Math.abs(D.sum[n2]));}D.bk[i]=a;D.bb[i]=b;D.bs[i]=c;}
   /* overall (band) */
   var ov=on?corrWith(S.rot,S.time,S.pol):corrWith(0,0,1);D.corr=ov.c;D.gain=ov.g;
-  (function(){var cr=0,ci=0,w=0,cr0=0,ci0=0,w0=0;for(var k=kmin;k<=kmax;k++){var m=Mk[k];if(m<1e-3)continue;var xr=Xs.re[k],xi=Xs.im[k],xm=Math.sqrt(xr*xr+xi*xi);
-    var br=BFr[k],bi=BFi[k];cr+=m*(xr*br+xi*bi);ci+=m*(xi*br-xr*bi);w+=m*xm*Math.sqrt(br*br+bi*bi);
-    br=Bs.re[k];bi=Bs.im[k];cr0+=m*(xr*br+xi*bi);ci0+=m*(xi*br-xr*bi);w0+=m*xm*Math.sqrt(br*br+bi*bi);}
-    D.vec=w>0?{x:-ci/w,y:cr/w}:{x:0,y:0};D.vec0=w0>0?{x:-ci0/w0,y:cr0/w0}:{x:0,y:0};})();
+  (function(){var cr=0,ci=0,w=0,cr0=0,ci0=0,w0=0,hx=0,hy=0,hn=0;
+    BL.forEach(function(B){var a=0,b=0,ww=0;for(var k=kmin;k<=kmax;k++){var m=Mk[k];if(m<1e-3)continue;var xr=Xs.re[k],xi=Xs.im[k],xm=Math.sqrt(xr*xr+xi*xi),r0=B.re[k],i0=B.im[k],br=r0*Gr[k]-i0*Gi[k],bi=r0*Gi[k]+i0*Gr[k];
+        cr+=m*(xr*br+xi*bi);ci+=m*(xi*br-xr*bi);w+=m*xm*Math.sqrt(br*br+bi*bi);a+=m*(xr*r0+xi*i0);b+=m*(xi*r0-xr*i0);ww+=m*xm*Math.sqrt(r0*r0+i0*i0);}
+      cr0+=a;ci0+=b;w0+=ww;var mg=Math.sqrt(a*a+b*b);if(ww>0&&mg/ww>0.05){hx+=-b/mg;hy+=a/mg;hn++;}});
+    D.vec=w>0?{x:-ci/w,y:cr/w}:{x:0,y:0};D.vec0=w0>0?{x:-ci0/w0,y:cr0/w0}:{x:0,y:0};D.hitR=hn>1?Math.sqrt(hx*hx+hy*hy)/hn:1;})();
   /* per band, after and before */
   D.bc=[];D.bc0=[];D.be=[];var emax=-1e9;
   for(var bI=0;bI<BANDS.length;bI++){
     var lo=BANDS[bI]*Math.pow(2,-1/6),hi=BANDS[bI]*Math.pow(2,1/6),k0=Math.max(1,Math.ceil(lo/DF)),k1=Math.max(k0,Math.floor(hi/DF));
     var w1=0,c1=0,w0=0,c0=0;
     for(var kk=k0;kk<=k1;kk++){var xr=Xs.re[kk],xi=Xs.im[kk],xm=Math.sqrt(xr*xr+xi*xi);
-      w1+=xm*Math.sqrt(BFr[kk]*BFr[kk]+BFi[kk]*BFi[kk]);c1+=xr*BFr[kk]+xi*BFi[kk];
-      w0+=xm*Math.sqrt(Bs.re[kk]*Bs.re[kk]+Bs.im[kk]*Bs.im[kk]);c0+=xr*Bs.re[kk]+xi*Bs.im[kk];}
+      for(var q2=0;q2<BL.length;q2++){var B2=BL[q2],r0=B2.re[kk],i0=B2.im[kk],fr=r0*Gr[kk]-i0*Gi[kk],fi=r0*Gi[kk]+i0*Gr[kk];
+        w1+=xm*Math.sqrt(fr*fr+fi*fi);c1+=xr*fr+xi*fi;w0+=xm*Math.sqrt(r0*r0+i0*i0);c0+=xr*r0+xi*i0;}}
     D.bc.push(w1>0?c1/w1:0);D.bc0.push(w0>0?c0/w0:0);
     var e=10*Math.log10(Math.max(1e-9,w0));D.be.push(e);emax=Math.max(emax,e);
   }
@@ -441,7 +464,7 @@ function drawTrace(){
   var t2=Tp+h1+gap;lane(t2,h2,2,[[2,'+6 dB'],[0.5,'-6']],function(line){line(sb,COL.sum,2.4,null,1,0.16,8);});
   chip(L+6,t2+6,COL.sum,'SUM','the low end you hear in mono');
   g.fillStyle=COL.dim;g.textAlign='center';g.font='12px '+FONT;
-  for(var ms2=0;ms2<=win;ms2+=50){var xx2=X(ms2/1000*SR);g.fillText(ms2+(ms2===250?' ms':''),Math.min(Math.max(xx2,L+6),L+pw-16),Hh-9);}
+  for(var ms2=0;ms2<=win;ms2+=50){var xx2=X(ms2/1000*SR);g.fillText(ms2+(ms2===win?' ms':''),Math.min(Math.max(xx2,L+6),L+pw-16),Hh-9);}
   if(hover.tx>=L&&hover.tx<=L+pw){var hn=Math.floor((hover.tx-L)/pw*ns);g.font='13px '+FONT;
     var txt=[(hn/SR*1000).toFixed(0)+' ms','kick '+fmtDb(db(Math.abs(kb[hn]))),'bass '+fmtDb(db(Math.abs(bb[hn]))),'sum  '+fmtDb(db(Math.abs(sb[hn])))];
     var bx=hover.tx>L+pw-150?hover.tx-142:hover.tx+8;rr(g,bx,Tp+36,134,72,8);g.fillStyle='rgba(8,10,14,.92)';g.fill();g.strokeStyle='rgba(255,255,255,.14)';g.stroke();g.fillStyle=COL.text;g.textAlign='left';
@@ -449,7 +472,7 @@ function drawTrace(){
   D.traceGeom={L:L,pw:pw,ns:ns};
 }
 function drawDial(){
-  var c=setup($('#cvDial')),g=c.g,W=c.w,Hh=c.h,cx=W/2,cy=122,R=84,z=zoneOf(D.corr),zc=COL[z];
+  var c=setup($('#cvDial')),g=c.g,W=c.w,Hh=c.h,cx=W/2,cy=103,R=69,z=zoneOf(D.corr),zc=COL[z];
   g.textBaseline='middle';
   /* bezel */
   var bz=g.createLinearGradient(0,cy-R-12,0,cy+R+12);bz.addColorStop(0,'rgba(255,255,255,.16)');bz.addColorStop(.5,'rgba(255,255,255,.03)');bz.addColorStop(1,'rgba(0,0,0,.5)');
@@ -531,6 +554,20 @@ function makeSlider(id,o){
   el.addEventListener('keydown',function(e){var st=(o.kstep||o.step||1)*(e.shiftKey?10:1);if(e.key==='ArrowRight'||e.key==='ArrowUp'){api.set(o.get()+st);e.preventDefault();}else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){api.set(o.get()-st);e.preventDefault();}});
   sliders[id]=api;return api;
 }
+function sweetSegs(kind){
+  var n=kind==='rot'?360:201,ok=[],i,b;
+  for(i=0;i<n;i++)ok.push((kind==='rot'?corrWith(i,S.time,S.pol).c:corrWith(S.rot,-10+i*0.1,S.pol).c)>=0.5);
+  b=kind==='rot'?Math.round(D.bestRot)%360:clamp(Math.round((D.bestTime+10)/0.1),0,n-1);
+  if(!ok[b])return [];
+  if(kind==='rot'){var l=b,r=b,c=0;while(c<360&&ok[(l-1+360)%360]){l--;c++;}if(c>=359)return [[0,1]];while(ok[(r+1)%360]&&r-l<359)r++;
+    if(l<0&&r>=0&&l+360>r)return [[0,(r+0.5)/360],[(l+360-0.5)/360,1]];if(r>359)return [[0,(r-360+0.5)/360],[(l-0.5)/360,1]];return [[Math.max(0,(l-0.5)/360),Math.min(1,(r+0.5)/360)]];}
+  var l2=b,r2=b;while(l2>0&&ok[l2-1])l2--;while(r2<n-1&&ok[r2+1])r2++;return [[l2/(n-1),r2/(n-1)]];
+}
+function paintSweet(api,segs){api.sw=api.sw||[];var th=api.el.querySelector('.thumb');
+  for(var i=0;i<2;i++){if(!api.sw[i]){api.sw[i]=document.createElement('u');api.sw[i].className='sweet';api.el.insertBefore(api.sw[i],th);}
+    var e=api.sw[i],sg=segs[i];if(!sg||sg[1]-sg[0]<0.004){e.style.display='none';continue;}e.style.display='block';e.style.left=(sg[0]*100)+'%';e.style.width=((sg[1]-sg[0])*100)+'%';
+    e.style.borderLeftWidth=(segs.length>1&&sg[0]===0)?'0':'2px';e.style.borderRightWidth=(segs.length>1&&sg[1]===1)?'0':'2px';}
+}
 function paintTrack(api,vals,min,max,bestVal){
   var n=vals.length,stops=[];for(var i=0;i<n;i++){stops.push(corrColor(vals[i])+' '+(i/(n-1)*100).toFixed(1)+'%');}
   api.trk.style.background='linear-gradient(90deg,'+stops.join(',')+')';
@@ -549,20 +586,36 @@ function syncUI(){
   $('#fxPol').className='chip'+(S.pol<0?' on':'');$('#fxPol').textContent=S.pol<0?'Polarity flipped':'Flip polarity';
   $('#fxFull').className='chip'+(S.full?' on':'');
 }
-function recompute(sigChanged){
+function refreshExtras(){
+  var unstable=S.sig==='free'&&D.hitR<0.8,v=$('#verdict'),t=$('#vtext'),h=$('#srcHint');
+  if(unstable){v.className='warn';v.textContent='Unstable';t.textContent='The bass phase jumps from hit to hit. Turn on retrigger in the bass synth, or bounce the bass to audio.';t.style.fontSize='15px';}
+  else t.style.fontSize='';
+  $('#hitLab').textContent=basses?('low end only, kick hit '+(hitI+1)+' of 4; verdict covers all 4'):'low end only, after each kick hit';
+  var sf=sourceFix();
+  if(unstable)h.textContent='At the source: turn on retrigger (phase reset) first';
+  else if(!sf)h.textContent='';
+  else if(Math.abs(sf.deg)<1.5)h.textContent=sf.bands?'At the source: nothing to change (turned bands not included)':'At the source: nothing to change';
+  else if(S.on&&S.pol<0&&Math.abs(S.rot)<1.5&&Math.abs(S.time)<0.03)h.textContent='Or at the source: flip the bass polarity (invert the clip or the synth)'+(sf.bands?' (bands not included)':'');
+  else{var d=Math.round(sf.deg),ms=Math.abs(sf.ms);h.textContent='Or at the source: start phase '+(d>0?'+':'')+d+'° at '+sf.f.toFixed(0)+' Hz, or nudge the bass '+ms.toFixed(1)+' ms '+(sf.ms>0?'later':'earlier')+(sf.bands?' (bands not included)':'');}
+}
+function recompute(sigChanged,noAudio){
   if(sigChanged)genSignals();
   setMask();process();
   paintTrack(slRot,D.rotC,0,360,D.bestRot);paintTrack(slTime,D.timeC,-10,10,D.bestTime);
-  refreshVerdict();dirty=true;scheduleAudio();
+  paintSweet(slRot,sweetSegs('rot'));paintSweet(slTime,sweetSegs('time'));
+  refreshVerdict();refreshExtras();dirty=true;if(!noAudio)scheduleAudio();
 }
 
 /* ===== audio preview ===== */
 var ac=null,src=null,gain=null,audioTimer=null;
 function applyVol(){if(gain)gain.gain.value=Math.pow(10,S.vol/20);}
+function bandOf(arr){var F=rfft(arr),r=new Float64Array(H+1),im=new Float64Array(H+1);for(var k=0;k<=H;k++){r[k]=F.re[k]*Mk[k];im[k]=F.im[k]*Mk[k];}return irfft(r,im);}
 function buildBuf(){
-  var out=new Float32Array(N);
-  for(var n=0;n<N;n++){var k=kick[n],bf=S.on?D.bf[n]:bass0[n];out[n]=Math.tanh((k+bf)*0.95)*0.92;}
-  var buf=ac.createBuffer(1,N*4,SR),ch=buf.getChannelData(0);for(var r=0;r<4;r++)ch.set(out,r*N);return buf;
+  var buf=ac.createBuffer(2,N*4,SR),cL=buf.getChannelData(0),cR=buf.getChannelData(1),kk=S.low?bandOf(kick):kick,g=0.4,dl=7;
+  for(var r=0;r<4;r++){var b=basses?(S.on?fixArr(basses[r]):basses[r]):(S.on?D.bf:bass0);if(S.low)b=bandOf(b);var oL=new Float32Array(N),oR=new Float32Array(N);
+    for(var n=0;n<N;n++){var bl=b[n],br=b[(n-dl+N)%N];if(S.mono){bl=br=(bl+br)/2;}oL[n]=Math.max(-1,Math.min(1,(kk[n]+bl)*g));oR[n]=Math.max(-1,Math.min(1,(kk[n]+br)*g));}
+    cL.set(oL,r*N);cR.set(oR,r*N);}
+  return buf;
 }
 function startSrc(){
   if(!ac)return;try{if(src){src.onended=null;src.stop();}}catch(e){}
@@ -580,6 +633,7 @@ function togglePlay(){
 /* ===== loop ===== */
 var dirty=true,last=0;
 function frame(ts){requestAnimationFrame(frame);if(document.hidden)return;var dt=SET.power?1000/16:1000/50;if(ts-last<dt)return;last=ts;
+  if(basses){var want=play.on?Math.floor((((performance.now()-play.t0)/1000)%(T*4))/T)%4:Math.floor(performance.now()/800)%4;if(want!==hitI)setHit(want);}
   if(play.on||dirty){renderAll();dirty=false;}}
 
 /* ===== wood ===== */
@@ -708,6 +762,8 @@ $('#fxPol').addEventListener('click',function(){S.pol=-S.pol;syncUI();recompute(
 $('#fxFull').addEventListener('click',function(){S.full=!S.full;syncUI();recompute(false);});
 $('#fxReset').addEventListener('click',function(){S.bp=S.bp.map(function(){return 0;});S.pol=1;S.rot=0;S.time=0;S.lo=20;S.hi=200;S.full=false;syncUI();recompute(false);});
 $('#fxAuto').addEventListener('click',autoAlign);
+$('#monMono').addEventListener('click',function(){S.mono=!S.mono;this.className='chip mon'+(S.mono?' on':'');scheduleAudio();});
+$('#monLow').addEventListener('click',function(){S.low=!S.low;this.className='chip mon'+(S.low?' on':'');scheduleAudio();});
 $('#snapRot').addEventListener('click',function(){slRot.set(D.bestRot);});
 $('#snapTime').addEventListener('click',function(){slTime.set(D.bestTime);});
 $('#selSig').addEventListener('change',function(e){S.sig=e.target.value;recompute(true);});
@@ -757,7 +813,7 @@ function boot(){
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){dirty=true;});
 }
 window.addEventListener('resize',function(){dirty=true;});
-window.__pp={S:S,D:function(){return D;},recompute:recompute,syncUI:syncUI,corrWith:corrWith,scale:function(){return scale;},defScale:function(){return defScale;},applyScale:applyScale,togglePlay:togglePlay,renderAll:renderAll};
+window.__pp={buildBuf:function(){return buildBuf();},setHit:setHit,hits:function(){return hits;},sourceFix:sourceFix,S:S,D:function(){return D;},recompute:recompute,syncUI:syncUI,corrWith:corrWith,scale:function(){return scale;},defScale:function(){return defScale;},applyScale:applyScale,togglePlay:togglePlay,renderAll:renderAll};
 boot();
 })();
 
