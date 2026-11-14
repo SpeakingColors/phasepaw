@@ -1,10 +1,14 @@
 # Roadmap
 
 ## Done
+- C++ core (analyzer and fixer) with an end to end test, see docs/prototype-results.md. The simple fix works with 21 ms latency; the per band fix was tested and dropped.
 - Interactive design mockup (docs/mockups), version 10.
 
 ## Next
-- Prototype the real-time fixer in C++ and listen for artefacts before anything else: the mockup uses ideal maths on a perfectly repeating loop, so its numbers are a best case.
+- Plugin shell (JUCE, VST3): sidechain input, block based analyzer and fixer, latency reported to the host, builds for Linux, Windows and macOS.
+- Test on real kick and bass recordings and listen for artefacts.
+- Per note mode: follow each bass note with lookahead and give it its own phase turn (for basslines with several notes).
+- Update the mockup: remove the per band fix.
 - Decide the real-time method for phase rotation and per band phase (allpass, FIR or FFT based) and its latency; report the latency to the host.
 - JUCE project, sidechain input, parameters, state.
 - Port the mockup window natively (same layout, displays, tooltips, three colour looks).
