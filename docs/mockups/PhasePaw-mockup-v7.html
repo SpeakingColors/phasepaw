@@ -119,6 +119,10 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 #demo .sl{height:22px}#demo .sl .trk{top:5px;height:10px}#demo .sl .thumb{height:20px;width:14px}#demo .sl .thumb:after{left:6px;top:5px;height:10px}
 #verdict{font-size:33px}
 .sl .sweet{position:absolute;top:4px;height:20px;box-sizing:border-box;border:2px solid #fff;border-radius:10px;box-shadow:0 0 9px var(--good),inset 0 0 6px rgba(255,255,255,.35);pointer-events:none;text-decoration:none}
+.chip.mon{display:inline-flex;align-items:center;gap:7px;height:26px;font-size:14px;padding:0 11px;color:var(--dim)}
+.chip.mon .led{width:9px;height:9px;border-radius:50%;background:#2a2d36;box-shadow:inset 0 1px 2px rgba(0,0,0,.9)}
+.chip.mon.on{color:#04130f;background:linear-gradient(180deg,#7df7da,#02c79d);border-color:#b6ffee;box-shadow:0 0 14px rgba(2,235,186,.55),inset 0 1px 0 rgba(255,255,255,.5)}
+.chip.mon.on .led{background:#fff;box-shadow:0 0 6px #fff}
 </style>
 </head>
 <body>
@@ -153,7 +157,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
     <div id="verdict">CANCELLING</div>
     <div id="vtext">They cancel each other.</div>
     <div id="vlevel" class="mono">low end in mono: -3.9 dB</div>
-    <div class="row" style="gap:8px;justify-content:center;margin-top:auto"><button class="chip on" id="monMono" data-tip="Listen: the plugin puts kick and bass together in mono on its output, so you hear what a mono speaker or a club system plays. Solo the bass track while this is on, and switch it off before you export. In this demo the sound is already mono, so the button only shows where it will be." style="height:26px;font-size:14px;padding:0 10px">Listen in mono</button><button class="chip" id="monLow" data-tip="Listen to only the low end inside the chosen band, where the clash happens. Best on a sub or good headphones. Switch it off before you export." style="height:26px;font-size:14px;padding:0 10px">Low end only</button></div>
+    <div class="row" style="gap:8px;justify-content:center;margin-top:auto"><span class="lab" style="font-size:13px">Listen</span><button class="chip mon" id="monMono" data-tip="Mono: hear kick and bass folded to mono, the way a mono speaker or a club system plays them. Lit and mint = on. In the plugin, solo the bass track while it is on and switch it off before you export. In this demo, off plays the bass slightly wide in stereo and on folds everything to mono."><i class="led"></i>Mono</button><button class="chip mon" id="monLow" data-tip="Low end: hear only what is inside the chosen band (20 to 200 Hz by default), without the kick click and the bass harmonics. That is the part where kick and bass clash. Best on a sub or good headphones; small speakers play almost nothing. Lit and mint = on. Switch it off before you export."><i class="led"></i>Low end</button></div>
   </div>
 
   <div class="panel" id="pDial" style="left:784px;top:250px;width:284px;height:300px">
@@ -226,7 +230,7 @@ var NOTES=[['E1',41.20],['F1',43.65],['F#1',46.25],['G1',49.00],['G#1',51.91],['
 
 /* ===== state ===== */
 var DEF={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false};
-var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:true,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
+var S={on:true,pol:1,rot:0,time:0,lo:20,hi:200,full:false,sig:'sub',note:1,bph:150,wid:0,mon:'mix',vol:-6,bp:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],mono:false,low:false,win:350,show:{kick:1,b0:1,bf:1,sum:1}};
 var SET={theme:'B',bubbles:true,power:false};
 try{var sv=JSON.parse(localStorage.getItem('phasepaw.settings.v1')||'{}'); if(sv.theme&&'ABC'.indexOf(sv.theme)>=0)SET.theme=sv.theme; if(typeof sv.bubbles==='boolean')SET.bubbles=sv.bubbles; if(typeof sv.power==='boolean')SET.power=sv.power;}catch(e){}
 function saveSettings(){try{localStorage.setItem('phasepaw.settings.v1',JSON.stringify(SET));}catch(e){}}
@@ -602,9 +606,10 @@ var ac=null,src=null,gain=null,audioTimer=null;
 function applyVol(){if(gain)gain.gain.value=Math.pow(10,S.vol/20);}
 function bandOf(arr){var F=rfft(arr),r=new Float64Array(H+1),im=new Float64Array(H+1);for(var k=0;k<=H;k++){r[k]=F.re[k]*Mk[k];im[k]=F.im[k]*Mk[k];}return irfft(r,im);}
 function buildBuf(){
-  var buf=ac.createBuffer(1,N*4,SR),ch=buf.getChannelData(0),kk=S.low?bandOf(kick):kick,g=0.45;
-  for(var r=0;r<4;r++){var b=basses?(S.on?fixArr(basses[r]):basses[r]):(S.on?D.bf:bass0);if(S.low)b=bandOf(b);var out=new Float32Array(N);
-    for(var n=0;n<N;n++)out[n]=Math.max(-1,Math.min(1,(kk[n]+b[n])*g));ch.set(out,r*N);}
+  var buf=ac.createBuffer(2,N*4,SR),cL=buf.getChannelData(0),cR=buf.getChannelData(1),kk=S.low?bandOf(kick):kick,g=0.4,dl=7;
+  for(var r=0;r<4;r++){var b=basses?(S.on?fixArr(basses[r]):basses[r]):(S.on?D.bf:bass0);if(S.low)b=bandOf(b);var oL=new Float32Array(N),oR=new Float32Array(N);
+    for(var n=0;n<N;n++){var bl=b[n],br=b[(n-dl+N)%N];if(S.mono){bl=br=(bl+br)/2;}oL[n]=Math.max(-1,Math.min(1,(kk[n]+bl)*g));oR[n]=Math.max(-1,Math.min(1,(kk[n]+br)*g));}
+    cL.set(oL,r*N);cR.set(oR,r*N);}
   return buf;
 }
 function startSrc(){
@@ -752,8 +757,8 @@ $('#fxPol').addEventListener('click',function(){S.pol=-S.pol;syncUI();recompute(
 $('#fxFull').addEventListener('click',function(){S.full=!S.full;syncUI();recompute(false);});
 $('#fxReset').addEventListener('click',function(){S.bp=S.bp.map(function(){return 0;});S.pol=1;S.rot=0;S.time=0;S.lo=20;S.hi=200;S.full=false;syncUI();recompute(false);});
 $('#fxAuto').addEventListener('click',autoAlign);
-$('#monMono').addEventListener('click',function(){S.mono=!S.mono;this.className='chip'+(S.mono?' on':'');});
-$('#monLow').addEventListener('click',function(){S.low=!S.low;this.className='chip'+(S.low?' on':'');scheduleAudio();});
+$('#monMono').addEventListener('click',function(){S.mono=!S.mono;this.className='chip mon'+(S.mono?' on':'');scheduleAudio();});
+$('#monLow').addEventListener('click',function(){S.low=!S.low;this.className='chip mon'+(S.low?' on':'');scheduleAudio();});
 $('#snapRot').addEventListener('click',function(){slRot.set(D.bestRot);});
 $('#snapTime').addEventListener('click',function(){slTime.set(D.bestTime);});
 $('#selSig').addEventListener('change',function(e){S.sig=e.target.value;recompute(true);});
@@ -803,7 +808,7 @@ function boot(){
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){dirty=true;});
 }
 window.addEventListener('resize',function(){dirty=true;});
-window.__pp={setHit:setHit,hits:function(){return hits;},sourceFix:sourceFix,S:S,D:function(){return D;},recompute:recompute,syncUI:syncUI,corrWith:corrWith,scale:function(){return scale;},defScale:function(){return defScale;},applyScale:applyScale,togglePlay:togglePlay,renderAll:renderAll};
+window.__pp={buildBuf:function(){return buildBuf();},setHit:setHit,hits:function(){return hits;},sourceFix:sourceFix,S:S,D:function(){return D;},recompute:recompute,syncUI:syncUI,corrWith:corrWith,scale:function(){return scale;},defScale:function(){return defScale;},applyScale:applyScale,togglePlay:togglePlay,renderAll:renderAll};
 boot();
 })();
 
