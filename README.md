@@ -14,7 +14,7 @@ Design stage. There is no plugin build to download yet. The interactive mockup i
 
 - Sits on the bass track; the kick comes in through the sidechain input.
 - Shows kick and bass on top of each other, plus their sum (what the low end sounds like in mono).
-- One verdict: in phase, careful, or cancelling, shown against the best this kick and bass can reach, with the level change of the low end in dB.
+- One verdict: in phase, careful, or cancelling, with the real line-up, the most this kick and bass can reach, and the level change of the low end in dB.
 - A phase needle: up means kick and bass add up, down means they cancel.
 - A view by frequency (third-octave bars); drag a bar to turn the phase of that band only.
 - Fixer for the bass: polarity flip, phase rotation (0 to 360 degrees), time shift (-10 to +10 ms), and Auto Align, which sets all three in one click and also turns each band to its own best phase (can be switched off).
