@@ -2,7 +2,7 @@
 
 ## Done
 - C++ core (analyzer and fixer) with an end to end test, see docs/prototype-results.md. The simple fix works with 21 ms latency; the per band fix only pays off with about 340 ms, so it becomes an optional high latency mode.
-- Interactive design mockup (docs/mockups), version 10.
+- Interactive design mockup (docs/mockups), version 11.
 
 ## Next
 - Plugin shell (JUCE, VST3): sidechain input, block based analyzer and fixer, latency reported to the host, builds for Linux, Windows and macOS.
