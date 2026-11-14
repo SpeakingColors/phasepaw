@@ -129,8 +129,8 @@ int main() {
         const double eBefore = bandEnergy(lowpass(Vec(kick), 24000), 20, 200); (void)eBefore;
         Vec mix0(kick.size()); for (size_t i = 0; i < kick.size(); ++i) mix0[i] = kick[i] + bass[i];
         const double low0 = bandEnergy(mix0, 20, 200);
-        for (int perBand = 0; perBand <= 1; ++perBand) for (int half : {512, 1024, 2048, 8192}) {
-            if (!perBand && half == 8192) continue; // the simple fix does not need the long filter
+        for (int perBand = 0; perBand <= 1; ++perBand) for (int half : {512, 1024, 2048, 8192, 16384}) {
+            if (!perBand && half >= 8192) continue; // the simple fix does not need the long filter
             if (perBand && half < 2048) continue;   // the per band fix needs a long filter to tell the bands apart
             const Settings s = an.autoAlign(neutral, perBand != 0);
             const double planned = an.lineup(s);
