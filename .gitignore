@@ -1,0 +1,11 @@
+build/
+cmake-build-*/
+*.o
+*.so
+*.vst3/
+*.zip
+.vscode/
+.idea/
+.DS_Store
+__pycache__/
+*.pyc
