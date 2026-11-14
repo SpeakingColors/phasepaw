@@ -19,6 +19,9 @@ Design stage. There is no plugin build to download yet. The interactive mockup i
 - A view by frequency (third-octave bars); drag a bar to turn the phase of that band only.
 - Fixer for the bass: polarity flip, phase rotation (0 to 360 degrees), time shift (-10 to +10 ms), and Auto Align, which sets all three in one click.
 - The fixer only works inside the chosen band (default 20 to 200 Hz), so the rest of the bass stays untouched.
+- A "fix at the source" hint: the same correction as a synth start phase or a clip nudge in ms, so the fixer can stay off.
+- A warning when the bass phase jumps from hit to hit (free-running oscillators), with the advice to turn on retrigger.
+- Listen buttons: kick and bass in mono, and low end only.
 
 ## Planned
 

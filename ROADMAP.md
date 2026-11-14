@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Done
-- Interactive design mockup (docs/mockups), version 6.
+- Interactive design mockup (docs/mockups), version 7.
 
 ## Next
 - Decide the real-time method for phase rotation and per band phase (allpass, FIR or FFT based) and its latency; report the latency to the host.
@@ -14,3 +14,4 @@
 ## Ideas
 - Load your own kick and bass files in the mockup demo.
 - Show how far each band can be turned.
+- A switch for running the plugin on the kick track with the bass on the sidechain (the fixer then moves the kick).
