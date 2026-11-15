@@ -20,7 +20,7 @@ Early build stage. The analysis and fixer core exists in C++ and passes an end t
 - A phase needle: up means kick and bass add up, down means they cancel.
 - A view by frequency (third-octave bars); drag a bar to turn the phase of that band only.
 - Fixer for the bass: polarity flip, phase rotation (0 to 360 degrees), time shift (-10 to +10 ms), and Auto Align, which sets all three in one click.
-- The fixer only works inside the chosen band (default 20 to 200 Hz), so the rest of the bass stays untouched.
+- The phase rotation only works inside the chosen band (default 20 to 200 Hz) and only turns the phase: the band never acts as an EQ or a filter. Polarity and time shift act on the whole bass, so it stays in one piece.
 - A "fix at the source" hint: the same correction as a synth start phase or a clip nudge in ms, so the fixer can stay off.
 - A warning when the bass phase jumps from hit to hit (free-running oscillators), with the advice to turn on retrigger.
 - Listen buttons: Mono (kick and bass folded to mono) and Low end (only the chosen band).

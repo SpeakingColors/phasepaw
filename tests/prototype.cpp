@@ -119,9 +119,36 @@ int main() {
         for (size_t i = 0; i < y.size(); ++i) err = std::max(err, std::abs(y[i] - d[i]));
         std::printf("fixer on, nothing set: max error %.2e  %s\n", err, err < 1e-6 ? "OK" : "FAIL"); if (err >= 1e-6) ++failures;
     }
-    // 2. every demo, two latencies, simple and per band
+    // 1b. the fixer must change phase only: the level of every frequency stays the same
+    {
+        struct Case { const char* name; Settings s; };
+        Settings flip; flip.pol = -1; Settings rot; rot.rotDeg = 90; Settings sh; sh.timeMs = 5; Settings mix; mix.pol = -1; mix.rotDeg = 40; mix.timeMs = -3;
+        Settings r45; r45.rotDeg = 45; Settings nar; nar.rotDeg = 90; nar.lo = 60; nar.hi = 150;
+        for (const Case& c : {Case{"polarity flip", flip}, Case{"rotation 45", r45}, Case{"rotation 90", rot}, Case{"time shift 5 ms", sh}, Case{"flip + 40 deg - 3 ms", mix}, Case{"rot 90, band 60-150", nar}}) for (int half : {512, 1024, 2048}) {
+            Fixer fx(SR, half); fx.design(c.s);
+            std::vector<cd> H(65536); for (size_t i = 0; i < fx.h.size(); ++i) H[i] = fx.h[i];
+            fft(H, false); double worst = 0, wf = 0;
+            for (size_t k = 1; k < H.size() / 2; ++k) { const double f = double(k) * SR / double(H.size()); if (f < 30 || f > 20000) continue; const double db = 20 * std::log10(std::abs(H[k])); if (std::abs(db) > std::abs(worst)) { worst = db; wf = f; } }
+            const bool ok = std::abs(worst) < 0.5 || half < 2048; // the 42.7 ms filter (the standard one) must stay within 0.5 dB; shorter ones are shown for information
+            std::printf("phase only, %-22s filter %5.1f ms: worst level change 30 Hz to 20 kHz %+.3f dB at %.0f Hz  %s\n", c.name, 1000.0 * half / SR, worst, wf, ok ? "OK" : "FAIL"); if (!ok) ++failures;
+        }
+    }
+    // 1c. sanity of signs and reach: a bass that is the kick itself, late or upside down, must come out fully aligned
+    {
+        Vec kick, bass; makeDemo("sub", 16, kick, bass);
+        struct Case { const char* name; int delay; double sign; };
+        for (const Case& c : {Case{"copy, 3 ms late", 144, 1.0}, Case{"copy, upside down", 0, -1.0}, Case{"copy, 2 ms late and upside down", 96, -1.0}}) {
+            Vec fake = delayBy(kick, c.delay); for (auto& v : fake) v *= c.sign;
+            Analyzer an(SR); an.add(kick, fake); Settings n; const double before = an.lineup(n); const Settings s = an.autoAlign(n, false);
+            Fixer fx(SR, 2048); fx.design(s); const Vec bf = fx.run(fake), kd = delayBy(kick, fx.latency());
+            const size_t skip = size_t(fx.latency()) + 4096; Vec k2(kd.begin() + long(skip), kd.end()), b2(bf.begin() + long(skip), bf.end());
+            Analyzer an2(SR); an2.add(k2, b2); const double after = an2.lineup(n); const bool ok = after > 0.97;
+            std::printf("%-32s before %+.2f, auto: polarity %+d, rotation %5.1f deg, shift %+.1f ms, measured after %+.3f  %s\n", c.name, before, s.pol, s.rotDeg, s.timeMs, after, ok ? "OK" : "FAIL"); if (!ok) ++failures;
+        }
+    }
+    // 2. every demo, several latencies, simple and per band
     const char* demos[] = {"sub", "oct80", "off", "offoct", "rolloct", "offmel", "rollmel", "onmel", "house"};
-    std::printf("\n%-8s %-9s %-8s | before | planned | measured | low end dB | change above 400 Hz (re whole bass) | bass shape\n", "demo", "mode", "latency");
+    std::printf("\n%-8s %-9s %-8s | before | planned | measured | low end dB (20-300 Hz) | change above 400 Hz | bass shape\n", "demo", "mode", "latency");
     for (const char* name : demos) {
         Vec kick, bass; makeDemo(name, beats, kick, bass);
         Analyzer an(SR); an.add(kick, bass); Settings neutral;
@@ -142,14 +169,15 @@ int main() {
             Analyzer an2(SR); an2.add(k2, b2);
             const double measured = an2.lineup(neutral);
             Vec mix1(k2.size()), mixRef(k2.size()); for (size_t i = 0; i < k2.size(); ++i) { mix1[i] = k2[i] + b2[i]; mixRef[i] = k2[i] + b0[i]; }
-            const double lowDb = 10 * std::log10(bandEnergy(mix1, 20, 200) / bandEnergy(mixRef, 20, 200));
-            Vec diff(b2.size()); for (size_t i = 0; i < b2.size(); ++i) diff[i] = b2[i] - b0[i];
+            const double lowDb = 10 * std::log10(bandEnergy(mix1, 20, 300) / bandEnergy(mixRef, 20, 300));
+            // above the band the bass may only be flipped and moved as a whole, nothing else
+            const Vec bref = delayBy(bass, fx.half + fx.shift); Vec diff(b2.size()); for (size_t i = 0; i < b2.size(); ++i) diff[i] = b2[i] - fx.sign * bref[skip + i];
             const double hiDb = 10 * std::log10(bandEnergy(diff, 400, 20000) / bandEnergy(b0, 20, 20000) + 1e-30);
             const double shape = envSimilarity(b0, b2);
             std::printf("%-8s %-9s %5.1f ms | %+5.2f  | %+5.2f   | %+5.2f    | %+5.1f      | %6.1f dB    | %.3f\n", name, perBand ? "per band" : "simple",
                         1000.0 * fx.latency() / SR, before, planned, measured, lowDb, hiDb, shape);
             if (measured < before + 0.15 && planned > before + 0.3) { std::printf("  FAIL: the processed audio did not improve as planned\n"); ++failures; }
-            if (hiDb > -60) { std::printf("  FAIL: the fixer changed the bass above 400 Hz\n"); ++failures; }
+            if (hiDb > -60) { std::printf("  FAIL: the fixer changed the bass above 400 Hz (beyond polarity and time shift)\n"); ++failures; }
         }
         (void)low0;
     }

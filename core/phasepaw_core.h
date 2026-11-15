@@ -4,7 +4,8 @@
 // Analyzer: measures how well kick and bass line up in the low end (cross spectrum over
 //           overlapping frames) and works out the best fix.
 // Fixer:    one linear phase FIR that applies polarity, phase rotation, time shift and a
-//           phase turn per third-octave band, only inside the chosen band. Fixed latency.
+//           phase turn per third-octave band inside the chosen band (phase only, never level),
+//           plus a whole-sample delay for the time shift. Fixed latency.
 //
 // This file is the prototype used by tests/prototype.cpp. The block based, real time
 // versions for the plugin are built on the same maths.
@@ -55,23 +56,35 @@ struct Settings {
 };
 
 inline double smoothstep(double x) { x = std::clamp(x, 0.0, 1.0); return x * x * (3 - 2 * x); }
+inline double wrapPi(double a) { return a - 2 * kPi * std::round(a / (2 * kPi)); }
 
-// 1 inside the band, soft upper edge (about 0.3 octave each side of hi), fades out below 12 Hz.
-inline double mask(double f, const Settings& s) {
-    if (f <= 0) return 0;
-    return smoothstep(f / 12.0) * smoothstep((std::log2(s.hi / f) + 0.3) / 0.6);
-}
+// Upper edge of the band: 1 below hi, fading to 0 over one octave centred on hi.
+inline double maskUp(double f, const Settings& s) { return f <= 0 ? 0.0 : smoothstep(std::log2(s.hi / f) + 0.5); }
+// A phase rotation cannot reach down to 0 Hz with a short filter, so it fades in between 0 and 30 Hz.
+// A polarity flip has no such limit and stays exact down to 0 Hz.
+// If the low edge of the band is raised above 20 Hz, the rotation also fades out over one octave centred on it.
+inline double maskLow(double f, const Settings& s) { return smoothstep(f / 30.0) * (s.lo > 20.5 ? smoothstep(std::log2(f / s.lo) + 0.5) : 1.0); }
+// Which frequencies count in the measurement.
+inline double mask(double f, const Settings& s) { return f <= 0 ? 0.0 : smoothstep(f / 12.0) * (s.lo > 20.5 ? smoothstep(std::log2(f / s.lo) + 0.5) : 1.0) * maskUp(f, s); }
 inline int bandIndex(double f) {
     const int p = int(std::lround(std::log2(std::max(f, 1.0) / 25.0) * 3.0));
     return std::clamp(p, 0, kBands - 1);
 }
-// What the fixer does to the bass at frequency f.
+// Phase rotation of the fixer at frequency f: a pure phase change (magnitude 1) inside the band,
+// fading to nothing at the band edges. The band says where the rotation works; it must never
+// act as an EQ or a filter.
+inline cd rotGain(double f, const Settings& s) {
+    if (!s.on || f <= 0) return cd(1, 0);
+    const double up = maskUp(f, s);
+    if (up <= 0) return cd(1, 0);
+    const double psi = wrapPi((s.rotDeg + s.bandDeg[size_t(bandIndex(f))]) * kPi / 180.0);
+    return std::polar(1.0, up * maskLow(f, s) * psi);
+}
+// Everything the fixer does to the bass at frequency f. Polarity and time shift act on the
+// whole bass: both are exact, cost nothing, and keep the bass in one piece.
 inline cd gain(double f, const Settings& s) {
     if (!s.on) return cd(1, 0);
-    const double m = mask(f, s);
-    if (m <= 0) return cd(1, 0);
-    const double ph = (s.rotDeg + s.bandDeg[size_t(bandIndex(f))]) * kPi / 180.0 - 2 * kPi * f * s.timeMs / 1000.0;
-    return (1 - m) + m * double(s.pol) * std::polar(1.0, ph);
+    return double(s.pol) * rotGain(f, s) * std::polar(1.0, -2 * kPi * f * s.timeMs / 1000.0);
 }
 
 class Analyzer {
@@ -110,7 +123,7 @@ public:
             if (m < 1e-3) continue;
             const cd g = gain(f, s);
             num += m * (C[size_t(k)] * std::conj(g)).real();
-            den += m * W[size_t(k)] * std::abs(g);
+            den += m * W[size_t(k)];
         }
         return den > 0 ? num / den : 0;
     }
@@ -163,28 +176,47 @@ public:
 
 class Fixer {
 public:
-    // half = latency in samples; the filter has 2 * half + 1 taps. half must be a power of two.
-    Fixer(double sampleRate, int halfLength) : sr(sampleRate), half(halfLength), h(size_t(2 * halfLength + 1), 0.0) {
+    // half = half length of the phase filter in samples (a power of two). The time shift is a plain
+    // delay of whole samples on top of it, with room for 10 ms in either direction.
+    Fixer(double sampleRate, int halfLength)
+        : sr(sampleRate), half(halfLength), maxShift(int(std::ceil(0.010 * sampleRate))), shift(maxShift), h(size_t(2 * halfLength + 1), 0.0) {
         h[size_t(half)] = 1.0;
     }
-    int latency() const { return half; }
+    int latency() const { return half + maxShift; }
 
     void design(const Settings& s) {
+        std::fill(h.begin(), h.end(), 0.0); h[size_t(half)] = 1.0; shift = maxShift; sign = 1.0;
+        if (!s.on) return; // exactly transparent: a plain delay
+        sign = s.pol < 0 ? -1.0 : 1.0;
+        shift = maxShift + std::clamp(int(std::lround(s.timeMs * sr / 1000.0)), -maxShift, maxShift);
         const size_t ng = size_t(8 * half);
-        std::vector<cd> D(ng);
+        std::vector<cd> T(ng), D(ng), Hc(ng);
         for (size_t k = 0; k <= ng / 2; ++k) {
-            cd g = gain(double(k) * sr / double(ng), s);
-            if (k == 0 || k == ng / 2) g = cd(g.real(), 0);
-            D[k] = g;
-            if (k > 0 && k < ng / 2) D[ng - k] = std::conj(g);
+            cd g = rotGain(double(k) * sr / double(ng), s);
+            if (k == 0 || k == ng / 2) g = cd(1, 0);
+            T[k] = g;
+            if (k > 0 && k < ng / 2) T[ng - k] = std::conj(g);
         }
-        fft(D, true);
-        for (int i = -half; i <= half; ++i) {
-            const double w = 0.5 + 0.5 * std::cos(kPi * i / double(half + 1));
-            h[size_t(i + half)] = D[(size_t(i + int(ng))) % ng].real() * w;
+        D = T;
+        // Cutting the filter to its length bends the level a little where the phase changes fast.
+        // A few rounds of pre-correction pull the level back to flat.
+        for (int round = 0; round < 6; ++round) {
+            std::vector<cd> t = D; fft(t, true);
+            std::fill(Hc.begin(), Hc.end(), cd(0, 0));
+            for (int i = -half; i <= half; ++i) {
+                const double w = 0.5 + 0.5 * std::cos(kPi * i / double(half + 1));
+                const double v = t[(size_t(i + int(ng))) % ng].real() * w;
+                h[size_t(i + half)] = v; Hc[(size_t(i + int(ng))) % ng] = v;
+            }
+            if (round == 5) break;
+            fft(Hc, false);
+            for (size_t k = 1; k < ng / 2; ++k) {
+                cd r = T[k] / Hc[k]; const double a = std::abs(r);
+                if (a > 2) r *= 2 / a;
+                if (a < 0.5) r *= 0.5 / a;
+                D[k] *= r; D[ng - k] = std::conj(D[k]);
+            }
         }
-        // keep the part that is not touched exactly transparent
-        if (!s.on) { std::fill(h.begin(), h.end(), 0.0); h[size_t(half)] = 1.0; }
     }
 
     // Offline convolution; output has the same length as the input and is late by latency().
@@ -196,12 +228,12 @@ public:
         fft(a, false); fft(b, false);
         for (size_t i = 0; i < n; ++i) a[i] *= b[i];
         fft(a, true);
-        std::vector<double> y(x.size());
-        for (size_t i = 0; i < x.size(); ++i) y[i] = a[i].real();
+        std::vector<double> y(x.size(), 0.0);
+        for (size_t i = size_t(shift); i < x.size(); ++i) y[i] = sign * a[i - size_t(shift)].real();
         return y;
     }
 
-    double sr; int half; std::vector<double> h;
+    double sr; int half, maxShift, shift; double sign = 1.0; std::vector<double> h;
 };
 
 } // namespace phasepaw
