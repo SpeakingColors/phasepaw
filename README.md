@@ -30,7 +30,6 @@ Early build stage. The analysis and fixer core exists in C++ and passes an end t
 
 - VST3 for Linux first, then Windows and macOS.
 - Offline installers with a manual and an uninstaller.
-- No telemetry, no network access.
 
 See [ROADMAP.md](ROADMAP.md).
 
