@@ -784,7 +784,7 @@ $('#bAbout').addEventListener('click',function(){modal('About & Support',
  '<p>Free and open source (AGPL-3.0-or-later).</p>'+
  '<p>Presets live in your user data folder under Studio 87 / PhasePaw / presets. A Flatpak DAW keeps its own copy in its config folder.</p>'+
  '<p>Uninstall: use the uninstaller that comes with the installer. Your saved presets stay unless you choose to delete them.</p>'+
- '<p><button class="btn" disabled data-tip="The Ko-fi page name is not set yet.">Support on Ko-fi</button> <button class="btn" onclick="location.href=\'studio87://open\'" data-tip="Opens Studio 87 Gear Updater to check this plugin for updates. Nothing is sent anywhere. If nothing opens, install Studio 87 Gear Updater from github.com/SpeakingColors/gearupdater/releases.">Open Studio 87 Gear Updater</button></p>',[{t:'Close',on:true}]);});
+ '<p><button class="btn" disabled data-tip="The Ko-fi page name is not set yet.">Support on Ko-fi</button> <button class="btn" onclick="location.href=\'studio87://open\'" data-tip="Opens Studio 87 Gear Updater to check this plugin for updates. Nothing is sent anywhere. If it is not installed, the GitHub page opens instead.">Open Studio 87 Gear Updater</button> <button class="btn" onclick="window.open(\'https://github.com/SpeakingColors/phasepaw\',\'_blank\',\'noopener\')" data-tip="Opens this plugin&#39;s home page on GitHub in your browser. Nothing is sent by the plugin.">Open on GitHub</button></p>',[{t:'Close',on:true}]);});
 
 /* ===== theme ===== */
 function setTheme(t){SET.theme=t;$('#page').setAttribute('data-skin',t);saveSettings();readCols();dirty=true;recompute(false);}
