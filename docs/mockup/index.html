@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PhasePaw v12 design mockup, Studio 87</title>
+<title>PhasePaw v13 design mockup, Studio 87</title>
 
 <style>
 :root,#page[data-skin="B"]{--page:#0b0b0d;--panel:#14151a;--panel2:#1e2028;--line:#343746;--disp:#06080a;--grid:#262b36;--text:#f4f5f7;--dim:#c3c7d2;--title:#E1CBF4;--selbg:#241238;--selbd:#CD92FE;--seltx:#E1CBF4;--kick:#FF1383;--bass:#02EBBA;--sum:#FFD100;--good:#02EBBA;--warn:#FFD100;--bad:#FF1383}
@@ -92,7 +92,7 @@ textarea{height:auto;width:100%;font:500 14px 'JetBrains Mono','DejaVu Sans Mono
 #vtext{font-size:17px;color:var(--dim);min-height:40px}
 #vlevel{font-size:15px}
 #demo{opacity:.92}
-#tip{border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+#tip{z-index:80;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
 
 /* v6 polish */
 #stage{background:radial-gradient(900px 420px at 50% -80px,rgba(164,61,255,.13),rgba(164,61,255,0) 70%),radial-gradient(700px 300px at 85% 110%,rgba(2,235,186,.05),rgba(0,0,0,0) 70%),var(--page)}
@@ -784,7 +784,7 @@ $('#bAbout').addEventListener('click',function(){modal('About & Support',
  '<p>Free and open source (AGPL-3.0-or-later).</p>'+
  '<p>Presets live in your user data folder under Studio 87 / PhasePaw / presets. A Flatpak DAW keeps its own copy in its config folder.</p>'+
  '<p>Uninstall: use the uninstaller that comes with the installer. Your saved presets stay unless you choose to delete them.</p>'+
- '<p><button class="btn" disabled data-tip="The Ko-fi page name is not set yet.">Support on Ko-fi</button></p>',[{t:'Close',on:true}]);});
+ '<p><button class="btn" disabled data-tip="The Ko-fi page name is not set yet.">Support on Ko-fi</button> <button class="btn" onclick="location.href=\'studio87://open\'" data-tip="Opens Studio 87 Gear Updater to check this plugin for updates. Nothing is sent anywhere. If nothing opens, install Studio 87 Gear Updater from github.com/SpeakingColors/gearupdater/releases.">Open Studio 87 Gear Updater</button></p>',[{t:'Close',on:true}]);});
 
 /* ===== theme ===== */
 function setTheme(t){SET.theme=t;$('#page').setAttribute('data-skin',t);saveSettings();readCols();dirty=true;recompute(false);}
